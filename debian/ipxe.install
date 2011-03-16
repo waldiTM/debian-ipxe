@@ -1,0 +1,3 @@
+src/bin/*.{rom,mrom} usr/lib/ipxe
+src/bin/ipxe.usb usr/lib/ipxe
+src/bin/undiload.kpxe usr/lib/ipxe

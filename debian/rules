@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+%:
+	dh $@ 
+
+BUILD_NICS = rtl8139 8086100e
+
+override_dh_auto_build:
+	make -C src V=1 NO_WERROR=1 bin/ipxe.usb bin/undiload.kpxe $(foreach N, $(BUILD_NICS), bin/$(N).rom bin/$(N).mrom)
+
+override_dh_auto_clean:
+	make -C src veryclean

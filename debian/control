@@ -1,0 +1,15 @@
+Source: ipxe
+Section: admin
+Priority: optional
+Maintainer: Bastian Blank <waldi@debian.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.1
+Homepage: http://ipxe.org/
+#Vcs-Git: git://git.debian.org/collab-maint/ipxe.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/ipxe.git;a=summary
+
+Package: ipxe
+Architecture: all
+Depends: ${misc:Depends}
+Description: PXE boot firmware
+ <insert long description, indented with spaces>
