@@ -676,7 +676,7 @@ forcedeth_open ( struct net_device *netdev )
 {
 	struct forcedeth_private *priv = netdev_priv ( netdev );
 	void *ioaddr = priv->mmio_addr;
-	int i, ret = 1;
+	int i;
 	int rc;
 	u32 low;
 
@@ -772,7 +772,7 @@ forcedeth_open ( struct net_device *netdev )
 	readl ( ioaddr + NvRegMIIStatus );
 	writel ( NVREG_MIISTAT_MASK_ALL, ioaddr + NvRegMIIStatus );
 	priv->linkspeed = 0;
-	ret = nv_update_linkspeed ( priv );
+	nv_update_linkspeed ( priv );
 	nv_start_rx ( priv );
 	nv_start_tx ( priv );
 
@@ -934,15 +934,8 @@ nv_process_rx_packets ( struct net_device *netdev )
 		} else {
 			len = flags & LEN_MASK_V1;
 
-			/* Filter any frames that have as destination address a
-			 * local MAC address but are not meant for this NIC */
-			if ( is_local_ether_addr ( curr_iob->data ) &&
-			     memcmp ( curr_iob->data, netdev->hw_addr, ETH_ALEN ) ) {
-				free_iob ( curr_iob );
-			} else {
-				iob_put ( curr_iob, len );
-				netdev_rx ( netdev, curr_iob );
-			}
+			iob_put ( curr_iob, len );
+			netdev_rx ( netdev, curr_iob );
 		}
 
 		/* Invalidate iobuf */
@@ -967,6 +960,11 @@ static void
 forcedeth_link_status ( struct net_device *netdev )
 {
 	struct forcedeth_private *priv = netdev_priv ( netdev );
+	void *ioaddr = priv->mmio_addr;
+
+	/* Clear the MII link change status by reading the MIIStatus register */
+	readl ( ioaddr + NvRegMIIStatus );
+	writel ( NVREG_MIISTAT_LINKCHANGE, ioaddr + NvRegMIIStatus );
 
 	if ( nv_update_linkspeed ( priv ) == 1 )
 		netdev_link_up ( netdev );
@@ -1100,11 +1098,6 @@ nv_setup_mac_addr ( struct forcedeth_private *priv )
 		dev->hw_addr[3] = ( orig_mac[0] >> 16 ) & 0xff;
 		dev->hw_addr[4] = ( orig_mac[0] >> 8 ) & 0xff;
 		dev->hw_addr[5] = ( orig_mac[0] >> 0 ) & 0xff;
-
-		writel ( txreg | NVREG_TRANSMITPOLL_MAC_ADDR_REV,
-			 ioaddr + NvRegTransmitPoll );
-
-		DBG ( "set workaround bit for reversed mac addr\n" );
 	}
 
 	if ( ! is_valid_ether_addr ( dev->hw_addr ) )

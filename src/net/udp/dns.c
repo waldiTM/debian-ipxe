@@ -587,7 +587,7 @@ struct resolver dns_resolver __resolver ( RESOLV_NORMAL ) = {
  */
 
 /** DNS server setting */
-struct setting dns_setting __setting = {
+struct setting dns_setting __setting ( SETTING_IPv4_EXTRA ) = {
 	.name = "dns",
 	.description = "DNS server",
 	.tag = DHCP_DNS_SERVERS,
@@ -595,9 +595,9 @@ struct setting dns_setting __setting = {
 };
 
 /** Domain name setting */
-struct setting domain_setting __setting = {
+struct setting domain_setting __setting ( SETTING_IPv4_EXTRA ) = {
 	.name = "domain",
-	.description = "Local domain",
+	.description = "DNS domain",
 	.tag = DHCP_DOMAIN_NAME,
 	.type = &setting_type_string,
 };
