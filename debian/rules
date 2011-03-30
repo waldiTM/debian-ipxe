@@ -7,10 +7,8 @@
 %:
 	dh $@ 
 
-BUILD_NICS = rtl8139 8086100e
-
 override_dh_auto_build:
-	make -C src V=1 NO_WERROR=1 bin/ipxe.usb bin/undiload.kpxe $(foreach N, $(BUILD_NICS), bin/$(N).rom bin/$(N).mrom)
+	make -C src V=1 NO_WERROR=1 allroms bin/undionly.kpxe bin/ipxe.iso
 
 override_dh_auto_clean:
 	make -C src veryclean
