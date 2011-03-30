@@ -1,3 +1,3 @@
 src/bin/*.rom usr/lib/ipxe
-src/bin/ipxe.iso usr/lib/ipxe
+src/bin/ipxe.{iso,lkrn,pxe} usr/lib/ipxe
 src/bin/undionly.kpxe usr/lib/ipxe

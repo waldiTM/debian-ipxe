@@ -8,7 +8,7 @@
 	dh $@ 
 
 override_dh_auto_build:
-	make -C src V=1 NO_WERROR=1 all allbaseroms
+	make -C src V=1 NO_WERROR=1 all allbaseroms bin/ipxe.pxe
 
 override_dh_auto_clean:
 	make -C src veryclean
