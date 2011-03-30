@@ -14,3 +14,4 @@ override_dh_auto_build:
 
 override_dh_auto_clean:
 	make -C src veryclean
+	rm -f src/config/local/*
