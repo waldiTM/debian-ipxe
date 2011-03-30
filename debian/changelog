@@ -1,5 +1,8 @@
 ipxe (1.0.0+git-1.293e34-1) unstable; urgency=low
 
   * Initial release
+  * Remove drivers with binary-only firmware:
+    - Remove bnx2 driver.
+    - Remove linda infiniband driver.
 
  -- Bastian Blank <waldi@debian.org>  Wed, 16 Mar 2011 12:22:25 +0100
