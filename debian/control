@@ -13,4 +13,14 @@ Package: ipxe
 Architecture: all
 Depends: ${misc:Depends}
 Description: PXE boot firmware
- <insert long description, indented with spaces>
+ iPXE is network boot firmware.  It supports a variety of network cards,
+ including some wireless cards, and variety of network protocols (traditional
+ DHCP, BOOTP and TFTP and also HTTP, iSCSI, SAN via FCoE and Infiniband). It
+ supports scripting.
+ .
+ It is possible to use iPXE as a PXE ROM in the network card or
+ to chainload it from other boot methods.
+ .
+ This package provides boot code for all supported network cards
+ in one binary, in several bootable formats, and also many boot
+ ROMs to be embedded in various network cards.
