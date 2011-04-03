@@ -5,4 +5,4 @@ ipxe (1.0.0+git-1.293e34-1) unstable; urgency=low
     - Remove bnx2 driver.
     - Remove linda infiniband driver.
 
- -- Bastian Blank <waldi@debian.org>  Wed, 16 Mar 2011 12:22:25 +0100
+ -- Bastian Blank <waldi@debian.org>  Sun, 03 Apr 2011 11:32:56 +0200
