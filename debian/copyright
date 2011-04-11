@@ -59,7 +59,7 @@ Copyright:
  2007-2008 Pavel Roskin <proski@gnu.org>
  2008-2009 Felix Fietkau <nbd@openwrt.org>
  2009 Nick Kossifidis <mickflemm@gmail.com>
-License: MIT
+License:
  Permission to use, copy, modify, and distribute this software for any
  purpose with or without fee is hereby granted, provided that the above
  copyright notice and this permission notice appear in all copies.
@@ -83,7 +83,7 @@ Copyright:
  2007 Jiri Slaby <jirislaby@gmail.com>
  2007 Luis R. Rodriguez <mcgrof@winlab.rutgers.edu>
  2009 Tobias Doerffel <tobias.doerffel@gmail.com>
-License: BSD-3
+License: BSD-3-clause
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
  .
@@ -111,7 +111,7 @@ Files: src/include/ipxe/efi/*
 Copyright: 
  2006-2010 Intel Corporation
  2008-2009 Apple
-License: BSD-3
+License: BSD-3-clause
 
 Files: src/include/ipxe/efi/efi_*
 License: GPL-2+
