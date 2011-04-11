@@ -90,6 +90,15 @@ License: BSD-3
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+Files: src/include/ipxe/efi/*
+Copyright: 
+ 2006-2010 Intel Corporation
+ 2008-2009 Apple
+License: BSD-3
+
+Files: src/include/ipxe/efi/efi_*
+License: GPL-2+
+
 Files: debian/*
 Copyright: 2011 Bastian Blank <waldi@debian.org>
 License: GPL-2+
