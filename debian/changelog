@@ -1,8 +1,8 @@
-ipxe (1.0.0+git-1.293e34-2) UNRELEASED; urgency=low
+ipxe (1.0.0+git-1.293e34-2) unstable; urgency=low
 
   * Add some missing copyrights and licenses to the copyright files.
 
- -- Bastian Blank <waldi@debian.org>  Mon, 11 Apr 2011 19:33:27 +0200
+ -- Bastian Blank <waldi@debian.org>  Mon, 11 Apr 2011 19:35:36 +0200
 
 ipxe (1.0.0+git-1.293e34-1) unstable; urgency=low
 
