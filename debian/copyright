@@ -49,6 +49,16 @@ License: LGPL-2.1+
 
 Files:
  src/drivers/net/ath5k/*
+Copyright:
+ 2004-2009 Reyk Floeter <reyk@openbsd.org>
+ 2006-2009 Nick Kossifidis <mickflemm@gmail.com>
+ 2007-2008 Jiri Slaby <jirislaby@gmail.com>
+ 2007-2008 Luis Rodriguez <mcgrof@winlab.rutgers.edu>
+ 2007-2008 Matthew W. S. Bell  <mentor@madwifi.org>
+ 2007-2008 Michael Taylor <mike.taylor@apprion.com>
+ 2007-2008 Pavel Roskin <proski@gnu.org>
+ 2008-2009 Felix Fietkau <nbd@openwrt.org>
+ 2009 Nick Kossifidis <mickflemm@gmail.com>
 License: MIT
  Permission to use, copy, modify, and distribute this software for any
  purpose with or without fee is hereby granted, provided that the above
@@ -66,6 +76,13 @@ Files:
  src/drivers/net/ath5k/ath5k.c
  src/drivers/net/ath5k/ath5k_rfkill.c
  src/drivers/net/ath5k/base.h
+Copyright:
+ 2002-2007 Sam Leffler, Errno Consulting
+ 2004-2005 Atheros Communications, Inc.
+ 2006 Devicescape Software, Inc.
+ 2007 Jiri Slaby <jirislaby@gmail.com>
+ 2007 Luis R. Rodriguez <mcgrof@winlab.rutgers.edu>
+ 2009 Tobias Doerffel <tobias.doerffel@gmail.com>
 License: BSD-3
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
