@@ -73,6 +73,126 @@ License:
  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 Files:
+ src/drivers/bus/mca.c
+ src/drivers/net/3c509.c
+ src/drivers/net/3c529.c
+ src/drivers/net/ns8390.h
+ src/include/ipxe/ib_cmrc.h
+ src/include/ipxe/ib_srp.h
+ src/include/ipxe/srp.h
+License: BSD-2-clause
+ Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+ .
+ * Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+ .
+ THIS SOFTWARE IS PROVIDED BY <COPYRIGHT HOLDER> ``AS IS'' AND ANY EXPRESS OR
+ IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ EVENT SHALL <COPYRIGHT HOLDER> OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Files: src/drivers/net/3c509.h
+Copyright: 1993 Herb Peyerl (hpeyerl@novatel.ca)
+License: BSD-3-clause
+
+Files: src/drivers/net/3c595.c
+Coypright:
+ 1993-1994 David Greenman, Martin Renters.
+ 1993-1995 Andres Vega Garcia.
+ 1994 Herb Peyerl <hpeyerl@novatel.ca>
+ 1995 Serge Babkin.
+ 2000 Shusuke Nisiyama <shu@athena.qe.eng.hokudai.ac.jp>
+License:
+ This software may be used, modified, copied, distributed, and sold, in
+ both source and binary form provided that the above copyright and these
+ terms are retained. Under no circumstances are the authors responsible for
+ the proper functioning of this software, nor do the authors assume any
+ responsibility for damages incurred with its use.
+
+Files: src/drivers/net/3c595.h
+Coypright:
+ 2000 Shusuke Nisiyama <shu@athena.qe.eng.hokudai.ac.jp>
+License: BSD-3-clause
+
+Files: src/drivers/net/3c5x9.c
+Copyright:
+ 1993-1994 David Greenman, Martin Renters
+ 1993-1995 Andres Vega Garcia
+ 1995 Serge Babkin
+License:
+ This software may be used, modified, copied, distributed, and sold, in
+ both source and binary form provided that the above copyright and these
+ terms are retained. Under no circumstances are the authors responsible for
+ the proper functioning of this software, nor do the authors assume any
+ responsibility for damages incurred with its use.
+
+Files: src/drivers/net/3c90x.*
+Copyright:
+ 1999 LightSys Technology Services, Inc.
+ 1999 Steve Smith
+ 2009 Thomas Miletich
+License:
+ This program may be re-distributed in source or binary form, modified,
+ sold, or copied for any purpose, provided that the above copyright message
+ and this text are included with all source copies or derivative works, and
+ provided that the above copyright message and this text are included in the
+ documentation of any binary-only distributions.  This program is distributed
+ WITHOUT ANY WARRANTY, without even the warranty of FITNESS FOR A PARTICULAR
+ PURPOSE or MERCHANTABILITY.  Please read the associated documentation
+
+Files:
+ src/drivers/net/ne2k_isa.c
+ src/drivers/net/ns8390.c
+Copyright: 1993-1994 David Greenman, Martin Renters.
+License:
+ This software may be used, modified, copied, distributed, and sold, in
+ both source and binary form provided that the above copyright and these
+ terms are retained. Under no circumstances are the authors responsible for
+ the proper functioning of this software, nor do the authors assume any
+ responsibility for damages incurred with its use.
+
+Files: src/include/ipxe/ibft.h
+Copyright:
+ 2007 Fen Systems Ltd
+ 2004,2007 IBM Corporation
+License:
+ Permission is hereby granted, free of charge, to any person
+ obtaining a copy of this software and associated documentation
+ files (the "Software"), to deal in the Software without
+ restriction, including without limitation the rights to use, copy,
+ modify, merge, publish, distribute, sublicense, and/or sell copies
+ of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .                       
+ The above copyright notice and this permission notice shall be
+ included in all copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+
+Files:
+ src/net/infiniband/ib_cmrc.c
+ src/net/infiniband/ib_srp.c
+Copyright: 2009 Fen Systems Ltd <mbrown@fensystems.co.uk>
+License: BSD-2-clause
+
+Files:
  src/drivers/net/ath5k/ath5k.c
  src/drivers/net/ath5k/ath5k_rfkill.c
  src/drivers/net/ath5k/base.h
