@@ -88,12 +88,16 @@ Files: src/drivers/net/3c509.h
 Copyright: 1993 Herb Peyerl (hpeyerl@novatel.ca)
 License: BSD-3-clause
 
-Files: src/drivers/net/3c595.c
+Files:
+ src/drivers/net/3c595.c
+ src/drivers/net/3c5x9.c
+ src/drivers/net/ne2k_isa.c
+ src/drivers/net/ns8390.c
 Coypright:
- 1993-1994 David Greenman, Martin Renters.
- 1993-1995 Andres Vega Garcia.
+ 1993-1994 David Greenman, Martin Renters
+ 1993-1995 Andres Vega Garcia
  1994 Herb Peyerl <hpeyerl@novatel.ca>
- 1995 Serge Babkin.
+ 1995 Serge Babkin
  2000 Shusuke Nisiyama <shu@athena.qe.eng.hokudai.ac.jp>
 License:
  This software may be used, modified, copied, distributed, and sold, in
@@ -106,18 +110,6 @@ Files: src/drivers/net/3c595.h
 Coypright:
  2000 Shusuke Nisiyama <shu@athena.qe.eng.hokudai.ac.jp>
 License: BSD-3-clause
-
-Files: src/drivers/net/3c5x9.c
-Copyright:
- 1993-1994 David Greenman, Martin Renters
- 1993-1995 Andres Vega Garcia
- 1995 Serge Babkin
-License:
- This software may be used, modified, copied, distributed, and sold, in
- both source and binary form provided that the above copyright and these
- terms are retained. Under no circumstances are the authors responsible for
- the proper functioning of this software, nor do the authors assume any
- responsibility for damages incurred with its use.
 
 Files: src/drivers/net/3c90x.*
 Copyright:
@@ -132,17 +124,6 @@ License:
  documentation of any binary-only distributions.  This program is distributed
  WITHOUT ANY WARRANTY, without even the warranty of FITNESS FOR A PARTICULAR
  PURPOSE or MERCHANTABILITY.  Please read the associated documentation
-
-Files:
- src/drivers/net/ne2k_isa.c
- src/drivers/net/ns8390.c
-Copyright: 1993-1994 David Greenman, Martin Renters.
-License:
- This software may be used, modified, copied, distributed, and sold, in
- both source and binary form provided that the above copyright and these
- terms are retained. Under no circumstances are the authors responsible for
- the proper functioning of this software, nor do the authors assume any
- responsibility for damages incurred with its use.
 
 Files: src/include/ipxe/ibft.h
 Copyright:
