@@ -88,21 +88,30 @@ cctype:
 #
 # Check for tools that can cause failed builds
 #
-.toolcheck :
-	@if $(CC) -v 2>&1 | grep -is 'gcc version 2\.96' > /dev/null; then \
-		$(ECHO) 'gcc 2.96 is unsuitable for compiling Etherboot'; \
-		$(ECHO) 'Use gcc 2.95 or gcc 3.x instead'; \
-		exit 1; \
-	fi
-	@if [ `perl -e 'use bytes; print chr(255)' | wc -c` = 2 ]; then \
-		$(ECHO) 'Your Perl version has a Unicode handling bug'; \
-		$(ECHO) 'Execute this command before compiling Etherboot:'; \
-		$(ECHO) 'export LANG=$${LANG%.UTF-8}'; \
-		exit 1; \
-	fi
-	@$(TOUCH) $@
-MAKEDEPS	+= .toolcheck
-VERYCLEANUP	+= .toolcheck
+
+ifeq ($(CCTYPE),gcc)
+GCC_2_96_BANNER := $(shell $(CC) -v 2>&1 | grep -is 'gcc version 2\.96')
+ifneq ($(GCC_2_96_BANNER),)
+$(warning gcc 2.96 is unsuitable for compiling iPXE)
+$(warning Use gcc 2.95 or a newer version instead)
+$(error Unsuitable build environment found)
+endif
+endif
+
+PERL_UNICODE_CHECK := $(shell $(PERL) -e 'use bytes; print chr(255)' | wc -c)
+ifeq ($(PERL_UNICODE_CHECK),2)
+$(warning Your Perl version has a Unicode handling bug)
+$(warning Execute this command before building iPXE:)
+$(warning export LANG=$${LANG%.UTF-8})
+$(error Unsuitable build environment found)
+endif
+
+LD_GOLD_BANNER := $(shell $(LD) -v 2>&1 | grep 'GNU gold')
+ifneq ($(LD_GOLD_BANNER),)
+$(warning GNU gold is unsuitable for building iPXE)
+$(warning Use GNU ld instead)
+$(error Unsuitable build environment found)
+endif
 
 ###############################################################################
 #
@@ -441,14 +450,20 @@ endif
 
 # Enable per-item sections and section garbage collection.  Note that
 # some older versions of gcc support -fdata-sections but treat it as
-# implying -fno-common, which would break our build.
+# implying -fno-common, which would break our build.  Some other older
+# versions issue a spurious and uninhibitable warning if
+# -ffunction-sections is used with -g, which would also break our
+# build since we use -Werror.
 #
 ifeq ($(CCTYPE),gcc)
 DS_TEST		= $(ECHO) 'char x;' | \
 		  $(CC) -fdata-sections -S -x c - -o - 2>/dev/null | \
 		  grep -E '\.comm' > /dev/null
 DS_FLAGS	:= $(shell $(DS_TEST) && $(ECHO) '-fdata-sections')
-CFLAGS		+= -ffunction-sections $(DS_FLAGS)
+FS_TEST		= $(CC) -ffunction-sections -g -c -x c /dev/null \
+		  -o /dev/null 2>/dev/null
+FS_FLAGS	:= $(shell $(FS_TEST) && $(ECHO) '-ffunction-sections')
+CFLAGS		+= $(FS_FLAGS) $(DS_FLAGS)
 endif
 LDFLAGS		+= --gc-sections
 
@@ -540,7 +555,8 @@ define rules_template
 		    '\n$(TGT)_OBJS += $$(BIN)/$(3).$(TGT)\n' ) ) \
 		 '\n$(BIN)/deps/$(1).d : $$($(3)_DEPS)\n' \
 		 '\nTAGS : $$($(3)_DEPS)\n' > $(BIN)/rules/$(1).r
-	@$(PERL) $(PARSEROM) $(1) >> $(BIN)/rules/$(1).r
+	@$(if $(findstring drivers/,$(1)),\
+	   $(PERL) $(PARSEROM) $(1) >> $(BIN)/rules/$(1).r)
 endef
 
 # Rule to generate the dependency list file
@@ -591,21 +607,22 @@ roms :
 # This is needed in order to correctly rebuild embedded.o whenever the
 # list of objects changes.
 #
+EMBED		:= $(EMBEDDED_IMAGE) # Maintain backwards compatibility
 EMBEDDED_LIST	:= $(BIN)/.embedded.list
 ifeq ($(wildcard $(EMBEDDED_LIST)),)
-EMBEDDED_IMAGE_OLD := <invalid>
+EMBED_OLD := <invalid>
 else
-EMBEDDED_IMAGE_OLD := $(shell cat $(EMBEDDED_LIST))
+EMBED_OLD := $(shell cat $(EMBEDDED_LIST))
 endif
-ifneq ($(EMBEDDED_IMAGE_OLD),$(EMBEDDED_IMAGE))
-$(shell $(ECHO) "$(EMBEDDED_IMAGE)" > $(EMBEDDED_LIST))
+ifneq ($(EMBED_OLD),$(EMBED))
+$(shell $(ECHO) "$(EMBED)" > $(EMBEDDED_LIST))
 endif
 
 $(EMBEDDED_LIST) :
 
 VERYCLEANUP	+= $(EMBEDDED_LIST)
 
-EMBEDDED_FILES	:= $(subst $(COMMA), ,$(EMBEDDED_IMAGE))
+EMBEDDED_FILES	:= $(subst $(COMMA), ,$(EMBED))
 EMBED_ALL	:= $(foreach i,$(call seq,1,$(words $(EMBEDDED_FILES))),\
 		     EMBED ( $(i), \"$(word $(i), $(EMBEDDED_FILES))\",\
 			     \"$(notdir $(word $(i),$(EMBEDDED_FILES)))\" ))
