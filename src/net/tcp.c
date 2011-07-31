@@ -74,7 +74,13 @@ struct tcp_connection {
 	 * Equivalent to RCV.WND in RFC 793 terminology.
 	 */
 	uint32_t rcv_win;
-	/** Most recent received timestamp
+	/** Received timestamp value
+	 *
+	 * Updated when a packet is received; copied to ts_recent when
+	 * the window is advanced.
+	 */
+	uint32_t ts_val;
+	/** Most recent received timestamp that advanced the window
 	 *
 	 * Equivalent to TS.Recent in RFC 1323 terminology.
 	 */
@@ -383,6 +389,25 @@ static size_t tcp_xmit_win ( struct tcp_connection *tcp ) {
 		len = TCP_PATH_MTU;
 
 	return len;
+}
+
+/**
+ * Check data-transfer flow control window
+ *
+ * @v tcp		TCP connection
+ * @ret len		Length of window
+ */
+static size_t tcp_xfer_window ( struct tcp_connection *tcp ) {
+
+	/* Not ready if data queue is non-empty.  This imposes a limit
+	 * of only one unACKed packet in the TX queue at any time; we
+	 * do this to conserve memory usage.
+	 */
+	if ( ! list_empty ( &tcp->tx_queue ) )
+		return 0;
+
+	/* Return TCP window length */
+	return tcp_xmit_win ( tcp );
 }
 
 /**
@@ -740,12 +765,24 @@ static void tcp_rx_opts ( struct tcp_connection *tcp, const void *data,
  * @v seq_len		Sequence space length to consume
  */
 static void tcp_rx_seq ( struct tcp_connection *tcp, uint32_t seq_len ) {
+
+	/* Sanity check */
+	assert ( seq_len > 0 );
+
+	/* Update acknowledgement number */
 	tcp->rcv_ack += seq_len;
+
+	/* Update window */
 	if ( tcp->rcv_win > seq_len ) {
 		tcp->rcv_win -= seq_len;
 	} else {
 		tcp->rcv_win = 0;
 	}
+
+	/* Update timestamp */
+	tcp->ts_recent = tcp->ts_val;
+
+	/* Mark ACK as pending */
 	tcp->flags |= TCP_ACK_PENDING;
 }
 
@@ -1060,13 +1097,13 @@ static int tcp_rx ( struct io_buffer *iobuf,
 	struct tcp_options options;
 	size_t hlen;
 	uint16_t csum;
-	uint32_t start_seq;
 	uint32_t seq;
 	uint32_t ack;
 	uint32_t win;
 	unsigned int flags;
 	size_t len;
 	uint32_t seq_len;
+	size_t old_xfer_window;
 	int rc;
 
 	/* Sanity check packet */
@@ -1100,12 +1137,14 @@ static int tcp_rx ( struct io_buffer *iobuf,
 	
 	/* Parse parameters from header and strip header */
 	tcp = tcp_demux ( ntohs ( tcphdr->dest ) );
-	seq = start_seq = ntohl ( tcphdr->seq );
+	seq = ntohl ( tcphdr->seq );
 	ack = ntohl ( tcphdr->ack );
 	win = ntohs ( tcphdr->win );
 	flags = tcphdr->flags;
 	tcp_rx_opts ( tcp, ( ( ( void * ) tcphdr ) + sizeof ( *tcphdr ) ),
 		      ( hlen - sizeof ( *tcphdr ) ), &options );
+	if ( options.tsopt )
+		tcp->ts_val = ntohl ( options.tsopt->tsval );
 	iob_pull ( iobuf, hlen );
 	len = iob_len ( iobuf );
 	seq_len = ( len + ( ( flags & TCP_SYN ) ? 1 : 0 ) +
@@ -1125,6 +1164,9 @@ static int tcp_rx ( struct io_buffer *iobuf,
 		rc = -ENOTCONN;
 		goto discard;
 	}
+
+	/* Record old data-transfer window */
+	old_xfer_window = tcp_xfer_window ( tcp );
 
 	/* Handle ACK, if present */
 	if ( flags & TCP_ACK ) {
@@ -1152,12 +1194,6 @@ static int tcp_rx ( struct io_buffer *iobuf,
 			goto discard;
 	}
 
-	/* Update timestamp, if applicable */
-	if ( options.tsopt &&
-	     tcp_in_window ( tcp->rcv_ack, start_seq, seq_len ) ) {
-		tcp->ts_recent = ntohl ( options.tsopt->tsval );
-	}
-
 	/* Enqueue received data */
 	tcp_rx_enqueue ( tcp, seq, flags, iob_disown ( iobuf ) );
 
@@ -1177,6 +1213,10 @@ static int tcp_rx ( struct io_buffer *iobuf,
 		stop_timer ( &tcp->wait );
 		start_timer_fixed ( &tcp->wait, ( 2 * TCP_MSL ) );
 	}
+
+	/* Notify application if window has changed */
+	if ( tcp_xfer_window ( tcp ) != old_xfer_window )
+		xfer_window_changed ( &tcp->xfer );
 
 	return 0;
 
@@ -1241,25 +1281,6 @@ static void tcp_xfer_close ( struct tcp_connection *tcp, int rc ) {
 
 	/* Transmit FIN, if possible */
 	tcp_xmit ( tcp );
-}
-
-/**
- * Check flow control window
- *
- * @v tcp		TCP connection
- * @ret len		Length of window
- */
-static size_t tcp_xfer_window ( struct tcp_connection *tcp ) {
-
-	/* Not ready if data queue is non-empty.  This imposes a limit
-	 * of only one unACKed packet in the TX queue at any time; we
-	 * do this to conserve memory usage.
-	 */
-	if ( ! list_empty ( &tcp->tx_queue ) )
-		return 0;
-
-	/* Return TCP window length */
-	return tcp_xmit_win ( tcp );
 }
 
 /**

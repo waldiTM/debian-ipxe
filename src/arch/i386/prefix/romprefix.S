@@ -104,6 +104,11 @@ pciheader_runtime_length:
 	.long	0
 	.previous
 
+	/* PnP doesn't require any particular alignment, but IBM
+	 * BIOSes will scan on 16-byte boundaries rather than using
+	 * the offset stored at 0x1a
+	 */
+	.align	16
 pnpheader:
 	.ascii	"$PnP"			/* Signature */
 	.byte	0x01			/* Structure revision */
@@ -286,6 +291,7 @@ pnp_scan:
 	call	print_message
 	jmp	pnp_done
 no_pnp:	/* Not PnP-compliant - hook INT 19 */
+#ifdef NONPNP_HOOK_INT19
 	movw	$init_message_int19, %si
 	xorw	%di, %di
 	call	print_message
@@ -296,6 +302,7 @@ no_pnp:	/* Not PnP-compliant - hook INT 19 */
 	pushw	%gs /* %gs contains runtime %cs */
 	pushw	$int19_entry
 	popl	%es:( 0x19 * 4 )
+#endif /* NONPNP_HOOK_INT19 */
 pnp_done:
 
 	/* Check for PMM */
