@@ -1,7 +1,7 @@
-files
-*/
-*.log
-*.substvars
-!patches/
-!source/
-!tree/
+/files
+/*
+/*.log
+/*.substvars
+!/patches/
+!/source/
+!/tree/
