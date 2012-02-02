@@ -7,11 +7,11 @@
 VERSION := $(shell dpkg-parsechangelog | sed -ne 's,^Version: *\(.*\)$$,\1,p')
 
 %:
-	dh $@ 
+	+dh $@ 
 
 override_dh_auto_build:
-	make -C src V=1 NO_WERROR=1 all allbaseroms bin/ipxe.pxe VERSION="$(VERSION)"
+	$(MAKE) -C src V=1 NO_WERROR=1 all allbaseroms bin/ipxe.pxe VERSION="$(VERSION)"
 
 override_dh_auto_clean:
-	make -C src veryclean
+	$(MAKE) -C src veryclean
 	rm -f src/config/local/*
