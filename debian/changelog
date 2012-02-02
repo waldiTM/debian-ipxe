@@ -1,3 +1,11 @@
+ipxe (1.0.0+git-20120202.f6840ba-1) unstable; urgency=low
+
+  * New snapshot.
+  * Disable ath9k roms.
+  * Fix tg3 build.
+
+ -- Bastian Blank <waldi@debian.org>  Thu, 02 Feb 2012 10:50:09 +0100
+
 ipxe (1.0.0+git-2.149b50-1) unstable; urgency=low
 
   * New snapshot.

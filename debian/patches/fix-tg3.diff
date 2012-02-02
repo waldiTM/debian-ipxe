@@ -1,0 +1,77 @@
+diff --git a/src/drivers/net/tg3/tg3.c b/src/drivers/net/tg3/tg3.c
+index 9d6b26d..79dd34d 100644
+--- a/src/drivers/net/tg3/tg3.c
++++ b/src/drivers/net/tg3/tg3.c
+@@ -533,7 +533,7 @@ static int tg3_test_dma(struct tg3 *tp)
+ {	DBGP("%s\n", __func__);
+ 
+ 	dma_addr_t buf_dma;
+-	u32 *buf, saved_dma_rwctrl;
++	u32 *buf;
+ 	int ret = 0;
+ 
+ 	buf = malloc_dma(TEST_BUFFER_SIZE, TG3_DMA_ALIGNMENT);
+@@ -624,7 +624,6 @@ static int tg3_test_dma(struct tg3 *tp)
+ 	/* It is best to perform DMA test with maximum write burst size
+ 	 * to expose the 5700/5701 write DMA bug.
+ 	 */
+-	saved_dma_rwctrl = tp->dma_rwctrl;
+ 	tp->dma_rwctrl &= ~DMA_RWCTRL_WRITE_BNDRY_MASK;
+ 	tw32(TG3PCI_DMA_RW_CTRL, tp->dma_rwctrl);
+ 
+diff --git a/src/drivers/net/tg3/tg3_hw.c b/src/drivers/net/tg3/tg3_hw.c
+index 036c246..ecb1f95 100644
+--- a/src/drivers/net/tg3/tg3_hw.c
++++ b/src/drivers/net/tg3/tg3_hw.c
+@@ -1778,7 +1778,7 @@ static void tg3_rings_reset(struct tg3 *tp)
+ {	DBGP("%s\n", __func__);
+ 
+ 	int i;
+-	u32 stblk, txrcb, rxrcb, limit;
++	u32 txrcb, rxrcb, limit;
+ 
+ 	/* Disable all transmit rings but the first. */
+ 	if (!tg3_flag(tp, 5705_PLUS))
+@@ -1854,8 +1854,6 @@ static void tg3_rings_reset(struct tg3 *tp)
+ 				BDINFO_FLAGS_MAXLEN_SHIFT, 0);
+ 		rxrcb += TG3_BDINFO_SIZE;
+ 	}
+-
+-	stblk = HOSTCC_STATBLCK_RING1;
+ }
+ 
+ static void tg3_setup_rxbd_thresholds(struct tg3 *tp)
+@@ -2569,15 +2567,6 @@ void tg3_set_txd(struct tg3 *tp, int entry,
+ u32 tg3_calc_dma_bndry(struct tg3 *tp, u32 val)
+ {	DBGP("%s\n", __func__);
+ 
+-	int cacheline_size;
+-	u8 byte;
+-
+-	pci_read_config_byte(tp->pdev, PCI_CACHE_LINE_SIZE, &byte);
+-	if (byte == 0)
+-		cacheline_size = 1024;
+-	else
+-		cacheline_size = (int) byte * 4;
+-
+ 	/* On 5703 and later chips, the boundary bits have no
+ 	 * effect.
+ 	 */
+diff --git a/src/drivers/net/tg3/tg3_phy.c b/src/drivers/net/tg3/tg3_phy.c
+index 542e027..f49c7f0 100644
+--- a/src/drivers/net/tg3/tg3_phy.c
++++ b/src/drivers/net/tg3/tg3_phy.c
+@@ -1124,13 +1124,10 @@ static u8 tg3_resolve_flowctrl_1000X(u16 lcladv, u16 rmtadv)
+ static void tg3_setup_flow_control(struct tg3 *tp, u32 lcladv, u32 rmtadv)
+ {	DBGP("%s\n", __func__);
+ 
+-	u8 autoneg;
+ 	u8 flowctrl = 0;
+ 	u32 old_rx_mode = tp->rx_mode;
+ 	u32 old_tx_mode = tp->tx_mode;
+ 
+-	autoneg = tp->link_config.autoneg;
+-
+ 	if (tg3_flag(tp, PAUSE_AUTONEG)) {
+ 		if (tp->phy_flags & TG3_PHYFLG_ANY_SERDES)
+ 			flowctrl = tg3_resolve_flowctrl_1000X(lcladv, rmtadv);
