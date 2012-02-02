@@ -15,11 +15,11 @@ IPXE=/boot/ipxe.lkrn
 
 if test -e "$IPXE" ; then
   IPXEPATH=$( make_system_path_relative_to_its_root "$IPXE" )
-  echo "Found iPXE image: $IPXEPATH" >&2
+  echo "Found iPXE image: $IPXE" >&2
   cat << EOF
-menuentry "Network boot (iPXE)" {
-	${prepare_boot_cache}
-	$LX $IPXEPATH
+menuentry "Network boot (iPXE)" --class network {
+${prepare_boot_cache}
+	linux16 $IPXEPATH
 }
 EOF
 fi
