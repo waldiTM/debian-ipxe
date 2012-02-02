@@ -4,3 +4,4 @@ files
 *.substvars
 !patches/
 !source/
+!tree/

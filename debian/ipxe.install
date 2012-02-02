@@ -1,3 +1,5 @@
+debian/tree/ipxe/* .
 src/bin/*.rom usr/lib/ipxe
-src/bin/ipxe.{iso,lkrn,pxe} usr/lib/ipxe
+src/bin/ipxe.{iso,pxe} usr/lib/ipxe
+src/bin/ipxe.lkrn boot
 src/bin/undionly.kpxe usr/lib/ipxe
