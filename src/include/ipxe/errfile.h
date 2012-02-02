@@ -137,6 +137,9 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #define ERRFILE_virtio_net	     ( ERRFILE_DRIVER | 0x005c0000 )
 #define ERRFILE_tap		     ( ERRFILE_DRIVER | 0x005d0000 )
 #define ERRFILE_igbvf_main	     ( ERRFILE_DRIVER | 0x005e0000 )
+#define ERRFILE_ath9k		     ( ERRFILE_DRIVER | 0x005f0000 )
+#define ERRFILE_ath		     ( ERRFILE_DRIVER | 0x00600000 )
+#define ERRFILE_vmxnet3		     ( ERRFILE_DRIVER | 0x00610000 )
 
 #define ERRFILE_scsi		     ( ERRFILE_DRIVER | 0x00700000 )
 #define ERRFILE_arbel		     ( ERRFILE_DRIVER | 0x00710000 )
@@ -239,6 +242,8 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #define ERRFILE_bofm		      ( ERRFILE_OTHER | 0x00210000 )
 #define ERRFILE_prompt		      ( ERRFILE_OTHER | 0x00220000 )
 #define ERRFILE_nvo_cmd		      ( ERRFILE_OTHER | 0x00230000 )
+#define ERRFILE_hmac_drbg	      ( ERRFILE_OTHER | 0x00240000 )
+#define ERRFILE_drbg		      ( ERRFILE_OTHER | 0x00250000 )
 
 /** @} */
 
