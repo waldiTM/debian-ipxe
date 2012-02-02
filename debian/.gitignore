@@ -2,4 +2,5 @@ files
 */
 *.log
 *.substvars
+!patches/
 !source/
