@@ -9,8 +9,9 @@ VERSION := $(shell dpkg-parsechangelog | sed -ne 's,^Version: *\(.*\)$$,\1,p')
 %:
 	+dh $@ 
 
+override_dh_auto_build: TARGETS = $(shell grep -o -E 'src\/bin/\S+' debian/*.install | sed -e 's,src/,,')
 override_dh_auto_build:
-	$(MAKE) -C src V=1 NO_WERROR=1 all allbaseroms bin/ipxe.pxe VERSION="$(VERSION)"
+	$(MAKE) -C src V=1 NO_WERROR=1 VERSION="$(VERSION)" $(TARGETS)
 
 override_dh_auto_clean:
 	$(MAKE) -C src veryclean

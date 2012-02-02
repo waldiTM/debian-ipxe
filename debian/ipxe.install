@@ -1,5 +1,5 @@
 debian/tree/ipxe/* .
-src/bin/*.rom usr/lib/ipxe
-src/bin/ipxe.{iso,pxe} usr/lib/ipxe
+src/bin/e1000_82540.rom src/bin/eepro100.rom src/bin/ns8390.rom src/bin/pcnet32.rom src/bin/rtl8139.rom src/bin/virtio-net.rom usr/lib/ipxe
+src/bin/ipxe.iso src/bin/ipxe.pxe usr/lib/ipxe
 src/bin/ipxe.lkrn boot
 src/bin/undionly.kpxe usr/lib/ipxe
