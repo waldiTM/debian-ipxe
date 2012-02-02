@@ -4,11 +4,13 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+VERSION := $(shell dpkg-parsechangelog | sed -ne 's,^Version: *\(.*\)$$,\1,p')
+
 %:
 	dh $@ 
 
 override_dh_auto_build:
-	make -C src V=1 NO_WERROR=1 all allbaseroms bin/ipxe.pxe
+	make -C src V=1 NO_WERROR=1 all allbaseroms bin/ipxe.pxe VERSION="$(VERSION)"
 
 override_dh_auto_clean:
 	make -C src veryclean

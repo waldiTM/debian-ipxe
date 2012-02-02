@@ -1,9 +1,10 @@
-ipxe (1.0.0+git-20120202.f6840ba-1) unstable; urgency=low
+ipxe (1.0.0+git-20120202.f6840ba-1) UNRELEASED; urgency=low
 
   * New snapshot.
   * Disable ath9k roms.
   * Fix tg3 build.
   * Create grub entry. (closes: #626238)
+  * Override version string with package version.
 
  -- Bastian Blank <waldi@debian.org>  Thu, 02 Feb 2012 10:50:09 +0100
 
