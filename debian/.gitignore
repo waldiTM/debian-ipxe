@@ -2,6 +2,7 @@
 /*
 /*.log
 /*.substvars
+!/config/
 !/patches/
 !/source/
 !/tree/
