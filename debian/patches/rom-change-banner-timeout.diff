@@ -1,0 +1,12 @@
+--- a/src/arch/i386/prefix/romprefix.S
++++ b/src/arch/i386/prefix/romprefix.S
+@@ -29,7 +29,9 @@
+  * doubled to allow for BIOSes that switch video modes immediately
+  * beforehand, so rendering the message almost invisible to the user.
+  */
++#ifndef ROM_BANNER_TIMEOUT
+ #define ROM_BANNER_TIMEOUT ( 2 * ( 18 * BANNER_TIMEOUT ) / 10 )
++#endif
+ 
+ /* Allow payload to be excluded from ROM size
+  */
