@@ -1,6 +1,6 @@
 ipxe (1.0.0+git-20120202.f6840ba-2) UNRELEASED; urgency=low
 
-  * Fix grub setup.
+  * Fix grub setup and restrict entry by default. (closes: #658465)
   * Install only combined images into ipxe package.
   * Install rom images needed for qemu into ipxe-qemu package.
   * Disable rom banner timeout. (closes: #638574)
