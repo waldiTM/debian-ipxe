@@ -12,6 +12,7 @@ Homepage: http://ipxe.org/
 Package: ipxe
 Architecture: all
 Depends: ${misc:Depends}
+Breaks: qemu (<= 1.0+dfsg-2), qemu-kvm (<= 1.0+dfsg-7)
 Description: PXE boot firmware
  iPXE is network boot firmware.  It supports a variety of network cards,
  including some wireless cards, and variety of network protocols (traditional
