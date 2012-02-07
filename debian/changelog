@@ -1,10 +1,10 @@
-ipxe (1.0.0+git-20120202.f6840ba-3) UNRELEASED; urgency=low
+ipxe (1.0.0+git-20120202.f6840ba-3) unstable; urgency=low
 
   * Fix to break qemu-system instead of qemu. (closes: #658982)
   * Make ipxe-qemu break and replace ipxe. (closes: #658684)
   * Add link for ipxe.lkrn, so all images can be found in one location.
 
- -- Bastian Blank <waldi@debian.org>  Tue, 07 Feb 2012 10:58:15 +0100
+ -- Bastian Blank <waldi@debian.org>  Tue, 07 Feb 2012 16:09:43 +0100
 
 ipxe (1.0.0+git-20120202.f6840ba-2) unstable; urgency=low
 
