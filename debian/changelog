@@ -1,6 +1,7 @@
 ipxe (1.0.0+git-20120202.f6840ba-3) UNRELEASED; urgency=low
 
   * Fix to break qemu-system instead of qemu. (closes: #658982)
+  * Make ipxe-qemu break and replace ipxe. (closes: #658684)
 
  -- Bastian Blank <waldi@debian.org>  Tue, 07 Feb 2012 10:58:15 +0100
 

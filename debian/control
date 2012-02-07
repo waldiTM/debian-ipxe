@@ -28,6 +28,8 @@ Description: PXE boot firmware
 Package: ipxe-qemu
 Architecture: all
 Depends: ${misc:Depends}
+Breaks: ipxe (<< 1.0.0+git-20120202.f6840ba-2~)
+Replaces: ipxe (<< 1.0.0+git-20120202.f6840ba-2~)
 Description: PXE boot firmware - ROM images for qemu
  iPXE is network boot firmware.  It supports a variety of network cards,
  including some wireless cards, and variety of network protocols (traditional
