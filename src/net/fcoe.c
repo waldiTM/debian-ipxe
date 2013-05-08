@@ -13,7 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 
 FILE_LICENCE ( GPL2_OR_LATER );
@@ -1010,7 +1011,7 @@ static void fcoe_expired ( struct retry_timer *timer, int over __unused ) {
 	/* Increment the timeout counter */
 	fcoe->timeouts++;
 
-	if ( vlan_can_be_trunk ( fcoe->netdev ) &
+	if ( vlan_can_be_trunk ( fcoe->netdev ) &&
 	     ! ( fcoe->flags & FCOE_VLAN_TIMED_OUT ) ) {
 
 		/* If we have already found a VLAN, send infrequent

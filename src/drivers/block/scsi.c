@@ -13,7 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 
 FILE_LICENCE ( GPL2_OR_LATER );
@@ -88,7 +89,7 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #define EINFO_EIO_COMPLETED \
 	__einfo_uniqify ( EINFO_EIO, 0x0f, "Completed" )
 #define EIO_SENSE( key )						\
-	EUNIQ ( EIO, (key), EIO_NO_SENSE, EIO_RECOVERED_ERROR,		\
+	EUNIQ ( EINFO_EIO, (key), EIO_NO_SENSE, EIO_RECOVERED_ERROR,	\
 		EIO_NOT_READY, EIO_MEDIUM_ERROR, EIO_HARDWARE_ERROR,	\
 		EIO_ILLEGAL_REQUEST, EIO_UNIT_ATTENTION,		\
 		EIO_DATA_PROTECT, EIO_BLANK_CHECK, EIO_VENDOR_SPECIFIC,	\

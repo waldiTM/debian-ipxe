@@ -13,7 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 
 FILE_LICENCE ( GPL2_OR_LATER );
@@ -56,13 +57,15 @@ static unsigned long efipci_address ( struct pci_device *pci,
 int efipci_read ( struct pci_device *pci, unsigned long location,
 		  void *value ) {
 	EFI_STATUS efirc;
+	int rc;
 
 	if ( ( efirc = efipci->Pci.Read ( efipci, EFIPCI_WIDTH ( location ),
 					  efipci_address ( pci, location ), 1,
 					  value ) ) != 0 ) {
+		rc = -EEFI ( efirc );
 		DBG ( "EFIPCI config read from " PCI_FMT " offset %02lx "
 		      "failed: %s\n", PCI_ARGS ( pci ),
-		      EFIPCI_OFFSET ( location ), efi_strerror ( efirc ) );
+		      EFIPCI_OFFSET ( location ), strerror ( rc ) );
 		return -EIO;
 	}
 
@@ -72,13 +75,15 @@ int efipci_read ( struct pci_device *pci, unsigned long location,
 int efipci_write ( struct pci_device *pci, unsigned long location,
 		   unsigned long value ) {
 	EFI_STATUS efirc;
+	int rc;
 
 	if ( ( efirc = efipci->Pci.Write ( efipci, EFIPCI_WIDTH ( location ),
 					   efipci_address ( pci, location ), 1,
 					   &value ) ) != 0 ) {
+		rc = -EEFI ( efirc );
 		DBG ( "EFIPCI config write to " PCI_FMT " offset %02lx "
 		      "failed: %s\n", PCI_ARGS ( pci ),
-		      EFIPCI_OFFSET ( location ), efi_strerror ( efirc ) );
+		      EFIPCI_OFFSET ( location ), strerror ( rc ) );
 		return -EIO;
 	}
 
@@ -148,6 +153,7 @@ struct efi_pci_device * efipci_create ( struct efi_driver *efidrv,
 					  efidrv->driver.DriverBindingHandle,
 					  device,
 					  EFI_OPEN_PROTOCOL_BY_DRIVER )) !=0 ){
+		rc = -EEFI ( efirc );
 		DBGCP ( efipci, "EFIPCI device %p is not a PCI device\n",
 			device );
 		goto err_open_protocol;
@@ -159,8 +165,9 @@ struct efi_pci_device * efipci_create ( struct efi_driver *efidrv,
 						    &pci_segment,
 						    &pci_bus, &pci_dev,
 						    &pci_fn ) ) != 0 ) {
+		rc = -EEFI ( efirc );
 		DBGC ( efipci, "EFIPCI device %p could not get PCI "
-		       "location: %s\n", device, efi_strerror ( efirc ) );
+		       "location: %s\n", device, strerror ( rc ) );
 		goto err_get_location;
 	}
 	DBGC2 ( efipci, "EFIPCI device %p is PCI %04lx:%02lx:%02lx.%lx\n",
@@ -184,6 +191,7 @@ struct efi_pci_device * efipci_create ( struct efi_driver *efidrv,
 					  efidrv->driver.DriverBindingHandle,
 					  device,
 					  EFI_OPEN_PROTOCOL_BY_DRIVER )) !=0 ){
+		rc = -EEFI ( efirc );
 		DBGC ( efipci, "EFIPCI " PCI_FMT " has no device path\n",
 		       PCI_ARGS ( &efipci->pci ) );
 		goto err_no_device_path;
@@ -212,21 +220,23 @@ struct efi_pci_device * efipci_create ( struct efi_driver *efidrv,
  * Enable EFI PCI device
  *
  * @v efipci		EFI PCI device
- * @ret efirc		EFI status code
+ * @ret rc		Return status code
  */
-EFI_STATUS efipci_enable ( struct efi_pci_device *efipci ) {
+int efipci_enable ( struct efi_pci_device *efipci ) {
 	EFI_PCI_IO_PROTOCOL *pci_io = efipci->pci_io;
-	EFI_STATUS efirc;
 
-	/* Enable device */
-	if ( ( efirc = pci_io->Attributes ( pci_io,
-					    EfiPciIoAttributeOperationSet,
-					    EFI_PCI_DEVICE_ENABLE,
-					    NULL ) ) != 0 ) {
-		DBGC ( efipci, "EFIPCI " PCI_FMT " could not be enabled: %s\n",
-		       PCI_ARGS ( &efipci->pci ), efi_strerror ( efirc ) );
-		return efirc;
-	}
+	/* Try to enable I/O cycles, memory cycles, and bus mastering.
+	 * Some platforms will 'helpfully' report errors if these bits
+	 * can't be enabled (for example, if the card doesn't actually
+	 * support I/O cycles).  Work around any such platforms by
+	 * enabling bits individually and simply ignoring any errors.
+	 */
+	pci_io->Attributes ( pci_io, EfiPciIoAttributeOperationEnable,
+			     EFI_PCI_IO_ATTRIBUTE_IO, NULL );
+	pci_io->Attributes ( pci_io, EfiPciIoAttributeOperationEnable,
+			     EFI_PCI_IO_ATTRIBUTE_MEMORY, NULL );
+	pci_io->Attributes ( pci_io, EfiPciIoAttributeOperationEnable,
+			     EFI_PCI_IO_ATTRIBUTE_BUS_MASTER, NULL );
 
 	return 0;
 }
@@ -270,8 +280,7 @@ struct efi_pci_device * efipci_find ( struct device *dev ) {
  * @v device		EFI child device
  * @ret efirc		EFI status code
  */
-EFI_STATUS efipci_child_add ( struct efi_pci_device *efipci,
-			      EFI_HANDLE device ) {
+int efipci_child_add ( struct efi_pci_device *efipci, EFI_HANDLE device ) {
 	EFI_BOOT_SERVICES *bs = efi_systab->BootServices;
 	struct efi_driver *efidrv = efipci->efidrv;
 	union {
@@ -279,6 +288,7 @@ EFI_STATUS efipci_child_add ( struct efi_pci_device *efipci,
 		void *interface;
 	} pci_io;
 	EFI_STATUS efirc;
+	int rc;
 
 	/* Re-open the PCI_IO_PROTOCOL */
 	if ( ( efirc = bs->OpenProtocol ( efipci->device,
@@ -288,9 +298,10 @@ EFI_STATUS efipci_child_add ( struct efi_pci_device *efipci,
 					  device,
 					  EFI_OPEN_PROTOCOL_BY_CHILD_CONTROLLER
 					  ) ) != 0 ) {
+		rc = -EEFI ( efirc );
 		DBGC ( efipci, "EFIPCI " PCI_FMT " could not add child: %s\n",
-		       PCI_ARGS ( &efipci->pci ), efi_strerror ( efirc ) );
-		return efirc;
+		       PCI_ARGS ( &efipci->pci ), strerror ( rc ) );
+		return rc;
 	}
 
 	return 0;
@@ -352,7 +363,6 @@ efipci_supported ( EFI_DRIVER_BINDING_PROTOCOL *driver, EFI_HANDLE device,
 	struct efi_driver *efidrv =
 		container_of ( driver, struct efi_driver, driver );
 	struct efi_pci_device *efipci;
-	EFI_STATUS efirc;
 	int rc;
 
 	DBGCP ( efidrv, "EFIPCI DRIVER_SUPPORTED %p (%p)\n", device, child );
@@ -361,7 +371,7 @@ efipci_supported ( EFI_DRIVER_BINDING_PROTOCOL *driver, EFI_HANDLE device,
 	efipci = efipci_create ( efidrv, device );
 	if ( ! efipci ) {
 		/* Non-PCI devices are simply unsupported */
-		efirc = EFI_UNSUPPORTED;
+		rc = -ENOTSUP;
 		goto err_not_pci;
 	}
 
@@ -369,7 +379,6 @@ efipci_supported ( EFI_DRIVER_BINDING_PROTOCOL *driver, EFI_HANDLE device,
 	if ( ( rc = pci_find_driver ( &efipci->pci ) ) != 0 ) {
 		DBGCP ( efipci, "EFIPCI " PCI_FMT " has no driver\n",
 			PCI_ARGS ( &efipci->pci ) );
-		efirc = EFI_UNSUPPORTED;
 		goto err_no_driver;
 	}
 
@@ -384,7 +393,7 @@ efipci_supported ( EFI_DRIVER_BINDING_PROTOCOL *driver, EFI_HANDLE device,
  err_no_driver:
 	efipci_destroy ( efidrv, efipci );
  err_not_pci:
-	return efirc;
+	return EFIRC ( rc );
 }
 
 /**
@@ -401,7 +410,6 @@ efipci_start ( EFI_DRIVER_BINDING_PROTOCOL *driver, EFI_HANDLE device,
 	struct efi_driver *efidrv =
 		container_of ( driver, struct efi_driver, driver );
 	struct efi_pci_device *efipci;
-	EFI_STATUS efirc;
 	int rc;
 
 	DBGC ( efidrv, "EFIPCI DRIVER_START %p (%p)\n", device, child );
@@ -409,7 +417,7 @@ efipci_start ( EFI_DRIVER_BINDING_PROTOCOL *driver, EFI_HANDLE device,
 	/* Create corresponding PCI device */
 	efipci = efipci_create ( efidrv, device );
 	if ( ! efipci ) {
-		efirc = EFI_OUT_OF_RESOURCES;
+		rc = -ENOMEM;
 		goto err_create;
 	}
 
@@ -417,12 +425,11 @@ efipci_start ( EFI_DRIVER_BINDING_PROTOCOL *driver, EFI_HANDLE device,
 	if ( ( rc = pci_find_driver ( &efipci->pci ) ) != 0 ) {
 		DBGC ( efipci, "EFIPCI " PCI_FMT " has no driver\n",
 		       PCI_ARGS ( &efipci->pci ) );
-		efirc = RC_TO_EFIRC ( rc );
 		goto err_find_driver;
 	}
 
 	/* Enable PCI device */
-	if ( ( efirc = efipci_enable ( efipci ) ) != 0 )
+	if ( ( rc = efipci_enable ( efipci ) ) != 0 )
 		goto err_enable;
 
 	/* Probe driver */
@@ -430,7 +437,6 @@ efipci_start ( EFI_DRIVER_BINDING_PROTOCOL *driver, EFI_HANDLE device,
 		DBGC ( efipci, "EFIPCI " PCI_FMT " could not probe driver "
 		       "\"%s\": %s\n", PCI_ARGS ( &efipci->pci ),
 		       efipci->pci.id->name, strerror ( rc ) );
-		efirc = RC_TO_EFIRC ( rc );
 		goto err_probe;
 	}
 
@@ -442,7 +448,7 @@ efipci_start ( EFI_DRIVER_BINDING_PROTOCOL *driver, EFI_HANDLE device,
  err_find_driver:
 	efipci_destroy ( efidrv, efipci );
  err_create:
-	return efirc;
+	return EFIRC ( rc );
 }
 
 /**
@@ -491,12 +497,12 @@ static struct efi_driver efipci_driver =
  */
 static void efipci_driver_startup ( void ) {
 	struct efi_driver *efidrv = &efipci_driver;
-	EFI_STATUS efirc;
+	int rc;
 
 	/* Install driver */
-	if ( ( efirc = efi_driver_install ( efidrv ) ) != 0 ) {
+	if ( ( rc = efi_driver_install ( efidrv ) ) != 0 ) {
 		DBGC ( efidrv, "EFIPCI could not install driver: %s\n",
-		       efi_strerror ( efirc ) );
+		       strerror ( rc ) );
 		return;
 	}
 

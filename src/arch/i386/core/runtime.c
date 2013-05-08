@@ -13,7 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 
 FILE_LICENCE ( GPL2_OR_LATER );
@@ -27,6 +28,7 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <errno.h>
 #include <assert.h>
 #include <ipxe/init.h>
@@ -135,6 +137,9 @@ static int cmdline_init ( void ) {
 	DBGC ( colour, "RUNTIME found command line \"%s\" at %08x\n",
 	       cmdline, cmdline_phys );
 
+	/* Mark command line as consumed */
+	cmdline_phys = 0;
+
 	/* Strip unwanted cruft from the command line */
 	cmdline_strip ( cmdline, "BOOT_IMAGE=" );
 	cmdline_strip ( cmdline, "initrd=" );
@@ -186,24 +191,33 @@ static int initrd_init ( void ) {
 	       initrd_phys, ( initrd_phys + initrd_len ) );
 
 	/* Allocate image */
-	image = alloc_image();
+	image = alloc_image ( NULL );
 	if ( ! image ) {
 		DBGC ( colour, "RUNTIME could not allocate image for "
 		       "initrd\n" );
+		rc = -ENOMEM;
 		goto err_alloc_image;
 	}
-	image_set_name ( image, "<INITRD>" );
+	if ( ( rc = image_set_name ( image, "<INITRD>" ) ) != 0 ) {
+		DBGC ( colour, "RUNTIME could not set image name: %s\n",
+		       strerror ( rc ) );
+		goto err_set_name;
+	}
 
 	/* Allocate and copy initrd content */
 	image->data = umalloc ( initrd_len );
 	if ( ! image->data ) {
-		DBGC ( colour, "RUNTIME could not allocate %zd bytes for "
+		DBGC ( colour, "RUNTIME could not allocate %d bytes for "
 		       "initrd\n", initrd_len );
+		rc = -ENOMEM;
 		goto err_umalloc;
 	}
 	image->len = initrd_len;
 	memcpy_user ( image->data, 0, phys_to_user ( initrd_phys ), 0,
 		      initrd_len );
+
+	/* Mark initrd as consumed */
+	initrd_phys = 0;
 
 	/* Register image */
 	if ( ( rc = register_image ( image ) ) != 0 ) {
@@ -219,6 +233,7 @@ static int initrd_init ( void ) {
 
  err_register_image:
  err_umalloc:
+ err_set_name:
 	image_put ( image );
  err_alloc_image:
 	return rc;
@@ -245,6 +260,6 @@ static void runtime_init ( void ) {
 }
 
 /** Command line and initrd initialisation function */
-struct init_fn runtime_init_fn __init_fn ( INIT_NORMAL ) = {
-	.initialise = runtime_init,
+struct startup_fn runtime_startup_fn __startup_fn ( STARTUP_NORMAL ) = {
+	.startup = runtime_init,
 };

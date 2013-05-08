@@ -13,12 +13,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 
 FILE_LICENCE ( GPL2_OR_LATER );
 
 #include <stdlib.h>
+#include <errno.h>
 #include <ipxe/efi/efi.h>
 
 /**
@@ -37,5 +39,5 @@ EFI_STATUS EFIAPI _efi_start ( EFI_HANDLE image_handle,
 		return efirc;
 
 	/* Call to main() */
-	return RC_TO_EFIRC ( main () );
+	return EFIRC ( main () );
 }

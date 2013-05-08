@@ -247,11 +247,12 @@ static int tg3_open(struct net_device *dev)
 		return err;
 
 	tpr->rx_std_iob_cnt = 0;
-	tg3_refill_prod_ring(tp);
 
 	err = tg3_init_hw(tp, 1);
 	if (err != 0)
 		DBGC(tp->dev, "tg3_init_hw failed: %s\n", strerror(err));
+	else
+		tg3_refill_prod_ring(tp);
 
 	return err;
 }
@@ -301,7 +302,6 @@ static int tg3_transmit(struct net_device *dev, struct io_buffer *iob)
 	struct tg3 *tp = netdev_priv(dev);
 	u32 len, entry;
 	dma_addr_t mapping;
-	u32 bmsr;
 
 	if (tg3_tx_avail(tp) < 1) {
 		DBGC(dev, "Transmit ring full\n");
@@ -323,13 +323,9 @@ static int tg3_transmit(struct net_device *dev, struct io_buffer *iob)
 	/* Packets are ready, update Tx producer idx local and on card. */
 	tw32_tx_mbox(tp->prodmbox, entry);
 
-	writel(entry, tp->regs + MAILBOX_SNDHOST_PROD_IDX_0 + TG3_64BIT_REG_LOW);
-
 	tp->tx_prod = entry;
 
 	mb();
-
-	tg3_readphy(tp, MII_BMSR, &bmsr);
 
 	return 0;
 }
@@ -422,8 +418,10 @@ static void tg3_refill_prod_ring(struct tg3 *tp)
 		tpr->rx_std_iob_cnt++;
 	}
 
-	tpr->rx_std_prod_idx = idx;
-	tw32_rx_mbox(TG3_RX_STD_PROD_IDX_REG, idx);
+	if ((u32)idx != tpr->rx_std_prod_idx) {
+		tpr->rx_std_prod_idx = idx;
+		tw32_rx_mbox(TG3_RX_STD_PROD_IDX_REG, idx);
+	}
 }
 
 static void tg3_rx_complete(struct net_device *dev)
@@ -469,7 +467,10 @@ static void tg3_rx_complete(struct net_device *dev)
 		tpr->rx_std_iob_cnt--;
 	}
 
-	tp->rx_rcb_ptr = sw_idx;
+	if (tp->rx_rcb_ptr != sw_idx) {
+		tw32_rx_mbox(tp->consmbox, sw_idx);
+		tp->rx_rcb_ptr = sw_idx;
+	}
 
 	tg3_refill_prod_ring(tp);
 }
@@ -480,7 +481,9 @@ static void tg3_poll(struct net_device *dev)
 	struct tg3 *tp = netdev_priv(dev);
 
 	/* ACK interrupts */
-	tw32_mailbox_f(MAILBOX_INTERRUPT_0 + TG3_64BIT_REG_LOW, 0x00);
+	/*
+	 *tw32_mailbox_f(MAILBOX_INTERRUPT_0 + TG3_64BIT_REG_LOW, 0x00);
+	 */
 	tp->hw_status->status &= ~SD_STATUS_UPDATED;
 
 	tg3_poll_link(tp);
@@ -533,7 +536,7 @@ static int tg3_test_dma(struct tg3 *tp)
 {	DBGP("%s\n", __func__);
 
 	dma_addr_t buf_dma;
-	u32 *buf, saved_dma_rwctrl;
+	u32 *buf;
 	int ret = 0;
 
 	buf = malloc_dma(TEST_BUFFER_SIZE, TG3_DMA_ALIGNMENT);
@@ -544,13 +547,13 @@ static int tg3_test_dma(struct tg3 *tp)
 	buf_dma = virt_to_bus(buf);
 	DBGC2(tp->dev, "dma test buffer, virt: %p phys: %#08x\n", buf, buf_dma);
 
-	tp->dma_rwctrl = ((0x7 << DMA_RWCTRL_PCI_WRITE_CMD_SHIFT) |
-			  (0x6 << DMA_RWCTRL_PCI_READ_CMD_SHIFT));
-
-	tp->dma_rwctrl = tg3_calc_dma_bndry(tp, tp->dma_rwctrl);
-
-	if (tg3_flag(tp, 57765_PLUS))
+	if (tg3_flag(tp, 57765_PLUS)) {
+		tp->dma_rwctrl = DMA_RWCTRL_DIS_CACHE_ALIGNMENT;
 		goto out;
+	}
+
+	tp->dma_rwctrl = ((0x7 << DMA_RWCTRL_PCI_WRITE_CMD_SHIFT) |
+	                 (0x6 << DMA_RWCTRL_PCI_READ_CMD_SHIFT));
 
 	if (tg3_flag(tp, PCI_EXPRESS)) {
 		/* DMA read watermark not used on PCIE */
@@ -624,7 +627,6 @@ static int tg3_test_dma(struct tg3 *tp)
 	/* It is best to perform DMA test with maximum write burst size
 	 * to expose the 5700/5701 write DMA bug.
 	 */
-	saved_dma_rwctrl = tp->dma_rwctrl;
 	tp->dma_rwctrl &= ~DMA_RWCTRL_WRITE_BNDRY_MASK;
 	tw32(TG3PCI_DMA_RW_CTRL, tp->dma_rwctrl);
 
@@ -906,6 +908,7 @@ static struct pci_device_id tg3_nics[] = {
 	PCI_ROM(0x14e4, 0x1684, "14e4-1684", "14e4-1684", 0),
 	PCI_ROM(0x14e4, 0x165b, "14e4-165b", "14e4-165b", 0),
 	PCI_ROM(0x14e4, 0x1681, "14e4-1681", "14e4-1681", 0),
+	PCI_ROM(0x14e4, 0x1682, "14e4-1682", "14e4-1682", 0),
 	PCI_ROM(0x14e4, 0x1680, "14e4-1680", "14e4-1680", 0),
 	PCI_ROM(0x14e4, 0x1688, "14e4-1688", "14e4-1688", 0),
 	PCI_ROM(0x14e4, 0x1689, "14e4-1689", "14e4-1689", 0),

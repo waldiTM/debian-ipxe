@@ -13,7 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 
 FILE_LICENCE ( GPL2_OR_LATER );
@@ -58,10 +59,11 @@ static size_t find_strings_terminator ( size_t offset ) {
  * Find specific structure type within SMBIOS
  *
  * @v type		Structure type to search for
+ * @v instance		Instance of this type of structure
  * @v structure		SMBIOS structure descriptor to fill in
  * @ret rc		Return status code
  */
-int find_smbios_structure ( unsigned int type,
+int find_smbios_structure ( unsigned int type, unsigned int instance,
 			    struct smbios_structure *structure ) {
 	unsigned int count = 0;
 	size_t offset = 0;
@@ -104,7 +106,8 @@ int find_smbios_structure ( unsigned int type,
 		      structure->header.len, structure->strings_len );
 
 		/* If this is the structure we want, return */
-		if ( structure->header.type == type ) {
+		if ( ( structure->header.type == type ) &&
+		     ( instance-- == 0 ) ) {
 			structure->offset = offset;
 			return 0;
 		}
@@ -177,4 +180,21 @@ int read_smbios_string ( struct smbios_structure *structure,
 
 	DBG ( "SMBIOS string index %d not found\n", index );
 	return -ENOENT;
+}
+
+/**
+ * Get SMBIOS version
+ *
+ * @ret version		Version, or negative error
+ */
+int smbios_version ( void ) {
+	int rc;
+
+	/* Find SMBIOS */
+	if ( ( smbios.address == UNULL ) &&
+	     ( ( rc = find_smbios ( &smbios ) ) != 0 ) )
+		return rc;
+	assert ( smbios.address != UNULL );
+
+	return smbios.version;
 }

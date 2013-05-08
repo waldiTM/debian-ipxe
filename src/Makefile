@@ -7,6 +7,7 @@ CLEANUP		:=
 CFLAGS		:=
 ASFLAGS		:=
 LDFLAGS		:=
+HOST_CFLAGS	:=
 MAKEDEPS	:= Makefile
 
 ###############################################################################
@@ -32,6 +33,7 @@ RANLIB		:= $(CROSS_COMPILE)ranlib
 OBJCOPY		:= $(CROSS_COMPILE)objcopy
 NM		:= $(CROSS_COMPILE)nm
 OBJDUMP		:= $(CROSS_COMPILE)objdump
+OPENSSL		:= openssl
 PARSEROM	:= ./util/parserom.pl
 FIXROM		:= ./util/fixrom.pl
 SYMCHECK	:= ./util/symcheck.pl
@@ -141,7 +143,25 @@ everything :
 		bin-i386-efi/ipxe.efirom \
 		bin-x86_64-efi/ipxe.efi bin-x86_64-efi/ipxe.efidrv \
 		bin-x86_64-efi/ipxe.efirom \
-		bin-i386-linux/tap.linux bin-x86_64-linux/tap.linux
+		bin-i386-linux/tap.linux bin-x86_64-linux/tap.linux \
+		bin-i386-linux/tests.linux bin-x86_64-linux/tests.linux
+
+###############################################################################
+#
+# VMware build target: all ROMs used with VMware
+#
+vmware : bin/8086100f.mrom bin/808610d3.mrom bin/10222000.rom bin/15ad07b0.rom
+	@$(ECHO) '==========================================================='
+	@$(ECHO) 
+	@$(ECHO) 'Available ROMs:'
+	@$(ECHO) '    bin/8086100f.mrom -- intel/e1000'
+	@$(ECHO) '    bin/808610d3.mrom -- intel/e1000e'
+	@$(ECHO) '    bin/10222000.rom  -- vlance/pcnet32'
+	@$(ECHO) '    bin/15ad07b0.rom  -- vmxnet3'
+	@$(ECHO) 
+	@$(ECHO) 'For more information, see http://ipxe.org/howto/vmware'
+	@$(ECHO)
+	@$(ECHO) '==========================================================='
 
 ###############################################################################
 #
@@ -163,13 +183,12 @@ VERSION_PATCH	= 0
 EXTRAVERSION	= +
 MM_VERSION	= $(VERSION_MAJOR).$(VERSION_MINOR)
 VERSION		= $(MM_VERSION).$(VERSION_PATCH)$(EXTRAVERSION)
-CFLAGS		+= -DVERSION_MAJOR=$(VERSION_MAJOR) \
-		   -DVERSION_MINOR=$(VERSION_MINOR) \
-		   -DVERSION_PATCH=$(VERSION_PATCH) \
-		   -DVERSION=\"$(VERSION)\"
-IDENT		= '$(@F) $(VERSION) (GPL) ipxe.org'
+GITVERSION := $(shell git describe --always --abbrev=1 --match "" 2>/dev/null)
+ifneq ($(GITVERSION),)
+VERSION		+= ($(GITVERSION))
+endif
 version :
-	@$(ECHO) $(VERSION)
+	@$(ECHO) "$(VERSION)"
 
 ###############################################################################
 #

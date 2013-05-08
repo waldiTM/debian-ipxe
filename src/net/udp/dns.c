@@ -16,7 +16,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 
 FILE_LICENCE ( GPL2_OR_LATER );
@@ -204,7 +205,7 @@ static char * dns_qualify_name ( const char *string ) {
 	char *fqdn;
 
 	/* Leave unchanged if already fully-qualified or no local domain */
-	if ( ( ! localdomain ) || ( strchr ( string, '.' ) != 0 ) )
+	if ( ( ! localdomain ) || ( strchr ( string, '.' ) != NULL ) )
 		return strdup ( string );
 
 	/* Append local domain to name */
@@ -427,7 +428,7 @@ static int dns_xfer_deliver ( struct dns_request *dns,
 	}
 	
 	/* Determine what to do next based on the type of query we
-	 * issued and the reponse we received
+	 * issued and the response we received
 	 */
 	switch ( qtype ) {
 
@@ -598,14 +599,6 @@ struct setting dns_setting __setting ( SETTING_IPv4_EXTRA ) = {
 	.description = "DNS server",
 	.tag = DHCP_DNS_SERVERS,
 	.type = &setting_type_ipv4,
-};
-
-/** Domain name setting */
-struct setting domain_setting __setting ( SETTING_IPv4_EXTRA ) = {
-	.name = "domain",
-	.description = "DNS domain",
-	.tag = DHCP_DOMAIN_NAME,
-	.type = &setting_type_string,
 };
 
 /**
