@@ -13,7 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 
 FILE_LICENCE ( GPL2_OR_LATER );
@@ -229,7 +230,8 @@ static int dhcppkt_settings_applies ( struct settings *settings,
 	struct dhcp_packet *dhcppkt =
 		container_of ( settings, struct dhcp_packet, settings );
 
-	return dhcppkt_applies ( dhcppkt, setting->tag );
+	return ( ( setting->scope == NULL ) &&
+		 dhcppkt_applies ( dhcppkt, setting->tag ) );
 }
 
 /**
@@ -298,6 +300,6 @@ void dhcppkt_init ( struct dhcp_packet *dhcppkt, struct dhcphdr *data,
 	dhcpopt_init ( &dhcppkt->options, &dhcppkt->dhcphdr->options,
 		       ( len - offsetof ( struct dhcphdr, options ) ),
 		       dhcpopt_no_realloc );
-	settings_init ( &dhcppkt->settings,
-			&dhcppkt_settings_operations, &dhcppkt->refcnt, 0 );
+	settings_init ( &dhcppkt->settings, &dhcppkt_settings_operations,
+			&dhcppkt->refcnt, NULL );
 }

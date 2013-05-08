@@ -13,16 +13,20 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 
 FILE_LICENCE ( GPL2_OR_LATER );
 
 #include <stddef.h>
+#include <string.h>
+#include <errno.h>
 #include <assert.h>
 #include <ipxe/efi/efi.h>
 #include <ipxe/ansiesc.h>
 #include <ipxe/console.h>
+#include <config/console.h>
 
 #define ATTR_BOLD		0x08
 
@@ -47,6 +51,12 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #define ATTR_BCOL_WHITE		0x70
 
 #define ATTR_DEFAULT		ATTR_FCOL_WHITE
+
+/* Set default console usage if applicable */
+#if ! ( defined ( CONSOLE_EFI ) && CONSOLE_EXPLICIT ( CONSOLE_EFI ) )
+#undef CONSOLE_EFI
+#define CONSOLE_EFI ( CONSOLE_USAGE_ALL & ~CONSOLE_USAGE_LOG )
+#endif
 
 /** Current character attribute */
 static unsigned int efi_attr = ATTR_DEFAULT;
@@ -219,6 +229,7 @@ static int efi_getchar ( void ) {
 	const char *ansi_seq;
 	EFI_INPUT_KEY key;
 	EFI_STATUS efirc;
+	int rc;
 
 	/* If we are mid-sequence, pass out the next byte */
 	if ( *ansi_input )
@@ -226,8 +237,8 @@ static int efi_getchar ( void ) {
 
 	/* Read key from real EFI console */
 	if ( ( efirc = conin->ReadKeyStroke ( conin, &key ) ) != 0 ) {
-		DBG ( "EFI could not read keystroke: %s\n",
-		      efi_strerror ( efirc ) );
+		rc = -EEFI ( efirc );
+		DBG ( "EFI could not read keystroke: %s\n", strerror ( rc ) );
 		return 0;
 	}
 	DBG2 ( "EFI read key stroke with unicode %04x scancode %04x\n",
@@ -273,4 +284,5 @@ struct console_driver efi_console __console_driver = {
 	.putchar = efi_putchar,
 	.getchar = efi_getchar,
 	.iskey = efi_iskey,
+	.usage = CONSOLE_EFI,
 };

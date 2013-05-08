@@ -56,29 +56,27 @@ static int snpnet_transmit ( struct net_device *netdev,
 			     struct io_buffer *iobuf ) {
 	struct snpnet_device *snpnetdev = netdev->priv;
 	EFI_SIMPLE_NETWORK_PROTOCOL *snp = snpnetdev->snp;
-	EFI_STATUS efirc;
+	void *txbuf=NULL;
 	size_t len = iob_len ( iobuf );
+	EFI_STATUS efirc;
+	int rc;
 
-	efirc = snp->Transmit ( snp, 0, len, iobuf->data, NULL, NULL, NULL );
-	return EFIRC_TO_RC ( efirc );
-}
-
-/**
- * Find a I/O buffer on the list of outstanding Tx buffers and complete it.
- *
- * @v snpnetdev		SNP network device
- * @v txbuf		Buffer address
- */
-static void snpnet_complete ( struct net_device *netdev, void *txbuf ) {
-	struct io_buffer *tmp;
-	struct io_buffer *iobuf;
-
-	list_for_each_entry_safe ( iobuf, tmp, &netdev->tx_queue, list ) {
-		if ( iobuf->data == txbuf ) {
-			netdev_tx_complete ( netdev, iobuf );
+	if ( ( efirc = snp->Transmit ( snp, 0, len, iobuf->data, NULL, NULL,
+				       NULL ) ) != 0 ) {
+		return -EEFI ( efirc );
+	}
+	/* since GetStatus is so inconsistent, don't try more than one outstanding transmit at a time */
+	while ( txbuf == NULL ) {
+		if ( ( efirc = snp->GetStatus ( snp, NULL, &txbuf ) ) != 0 ) {
+			rc = -EEFI ( efirc );
+			DBGC ( snp, "SNP %p could not get status %s\n", snp,
+			       strerror ( rc ) );
 			break;
 		}
+
 	}
+	netdev_tx_complete ( netdev, iobuf );
+	return 0;
 }
 
 /**
@@ -89,25 +87,10 @@ static void snpnet_complete ( struct net_device *netdev, void *txbuf ) {
 static void snpnet_poll ( struct net_device *netdev ) {
 	struct snpnet_device *snpnetdev = netdev->priv;
 	EFI_SIMPLE_NETWORK_PROTOCOL *snp = snpnetdev->snp;
-	EFI_STATUS efirc;
 	struct io_buffer *iobuf = NULL;
 	UINTN len;
-	void *txbuf;
-
-	/* Process Tx completions */
-	while ( 1 ) {
-		efirc = snp->GetStatus ( snp, NULL, &txbuf );
-		if ( efirc ) {
-			DBGC ( snp, "SNP %p could not get status %s\n", snp,
-			       efi_strerror ( efirc ) );
-			break;
-		}
-
-		if ( txbuf == NULL )
-			break;
-
-		snpnet_complete ( netdev, txbuf );
-	}
+	EFI_STATUS efirc;
+	int rc;
 
 	/* Process received packets */
 	while ( 1 ) {
@@ -134,12 +117,13 @@ static void snpnet_poll ( struct net_device *netdev ) {
 		}
 
 		/* Other error? */
-		if ( efirc ) {
+		if ( efirc != 0 ) {
+			rc = -EEFI ( efirc );
 			DBGC ( snp, "SNP %p receive packet error: %s "
 				    "(len was %zd, is now %zd)\n",
-			       snp, efi_strerror ( efirc ), iob_len(iobuf),
+			       snp, strerror ( rc ), iob_len(iobuf),
 			       (size_t)len );
-			netdev_rx_err ( netdev, iobuf, efirc );
+			netdev_rx_err ( netdev, iobuf, rc );
 			break;
 		}
 
@@ -158,25 +142,27 @@ static void snpnet_poll ( struct net_device *netdev ) {
 static int snpnet_open ( struct net_device *netdev ) {
 	struct snpnet_device *snpnetdev = netdev->priv;
 	EFI_SIMPLE_NETWORK_PROTOCOL *snp = snpnetdev->snp;
-	EFI_STATUS efirc;
+	EFI_MAC_ADDRESS *mac;
 	UINT32 enableFlags, disableFlags;
+	EFI_STATUS efirc;
+	int rc;
 
 	snpnetdev->close_state = snp->Mode->State;
 	if ( snp->Mode->State != EfiSimpleNetworkInitialized ) {
-		efirc = snp->Initialize ( snp, 0, 0 );
-		if ( efirc ) {
+		if ( ( efirc = snp->Initialize ( snp, 0, 0 ) ) != 0 ) {
+			rc = -EEFI ( efirc );
 			DBGC ( snp, "SNP %p could not initialize: %s\n",
-			       snp, efi_strerror ( efirc ) );
-			return EFIRC_TO_RC ( efirc );
+			       snp, strerror ( rc ) );
+			return rc;
 		}
 	}
 
         /* Use the default MAC address */
-	efirc = snp->StationAddress ( snp, FALSE,
-				      (EFI_MAC_ADDRESS *)netdev->ll_addr );
-	if ( efirc ) {
+	mac = ( ( void * ) netdev->ll_addr );
+	if ( ( efirc = snp->StationAddress ( snp, FALSE, mac ) ) != 0 ) {
+		rc = -EEFI ( efirc );
 		DBGC ( snp, "SNP %p could not reset station address: %s\n",
-		       snp, efi_strerror ( efirc ) );
+		       snp, strerror ( rc ) );
 	}
 
 	/* Set up receive filters to receive unicast and broadcast packets
@@ -198,11 +184,11 @@ static int snpnet_open ( struct net_device *netdev ) {
 		enableFlags |= EFI_SIMPLE_NETWORK_RECEIVE_PROMISCUOUS;
 	}
 	disableFlags &= ~enableFlags;
-	efirc = snp->ReceiveFilters ( snp, enableFlags, disableFlags,
-				      FALSE, 0, NULL );
-	if ( efirc ) {
+	if ( ( efirc = snp->ReceiveFilters ( snp, enableFlags, disableFlags,
+					     FALSE, 0, NULL ) ) != 0 ) {
+		rc = -EEFI ( efirc );
 		DBGC ( snp, "SNP %p could not set receive filters: %s\n",
-		       snp, efi_strerror ( efirc ) );
+		       snp, strerror ( rc ) );
 	}
 
 	DBGC ( snp, "SNP %p opened\n", snp );
@@ -218,12 +204,13 @@ static void snpnet_close ( struct net_device *netdev ) {
 	struct snpnet_device *snpnetdev = netdev->priv;
 	EFI_SIMPLE_NETWORK_PROTOCOL *snp = snpnetdev->snp;
 	EFI_STATUS efirc;
+	int rc;
 
 	if ( snpnetdev->close_state != EfiSimpleNetworkInitialized ) {
-		efirc = snp->Shutdown ( snp );
-		if ( efirc ) {
+		if ( ( efirc = snp->Shutdown ( snp ) ) != 0 ) {
+			rc = -EEFI ( efirc );
 			DBGC ( snp, "SNP %p could not shut down: %s\n",
-			       snp, efi_strerror ( efirc ) );
+			       snp, strerror ( rc ) );
 		}
 	}
 }
@@ -283,11 +270,10 @@ int snpnet_probe ( struct snp_device *snpdev ) {
 
 	/* Start the interface */
 	if ( snp->Mode->State == EfiSimpleNetworkStopped ) {
-		efirc = snp->Start ( snp );
-		if ( efirc ) {
+		if ( ( efirc = snp->Start ( snp ) ) != 0 ) {
+			rc = -EEFI ( efirc );
 			DBGC ( snp, "SNP %p could not start: %s\n", snp,
-			       efi_strerror ( efirc ) );
-			rc = EFIRC_TO_RC ( efirc );
+			       strerror ( rc ) );
 			goto err_start;
 		}
 	}
@@ -329,25 +315,27 @@ err_start:
  */
 void snpnet_remove ( struct snp_device *snpdev ) {
 	EFI_SIMPLE_NETWORK_PROTOCOL *snp = snpdev->snp;
-	EFI_STATUS efirc;
 	struct net_device *netdev = snpdev->netdev;
+	EFI_STATUS efirc;
+	int rc;
 
 	if ( snp->Mode->State == EfiSimpleNetworkInitialized &&
 	     snpdev->removal_state != EfiSimpleNetworkInitialized ) {
 		DBGC ( snp, "SNP %p shutting down\n", snp );
-		efirc = snp->Shutdown ( snp );
-		if ( efirc ) {
+		if ( ( efirc = snp->Shutdown ( snp ) ) != 0 ) {
+			rc = -EEFI ( efirc );
 			DBGC ( snp, "SNP %p could not shut down: %s\n",
-			       snp, efi_strerror ( efirc ) );
+			       snp, strerror ( rc ) );
 		}
 	}
 
 	if ( snp->Mode->State == EfiSimpleNetworkStarted &&
 	     snpdev->removal_state == EfiSimpleNetworkStopped ) {
 		DBGC ( snp, "SNP %p stopping\n", snp );
-		efirc = snp->Stop ( snp );
-		if ( efirc ) {
-			DBGC ( snp, "SNP %p could not be stopped\n", snp );
+		if ( ( efirc = snp->Stop ( snp ) ) != 0 ) {
+			rc = -EEFI ( efirc );
+			DBGC ( snp, "SNP %p could not be stopped: %s\n",
+			       snp, strerror ( rc ) );
 		}
 	}
 

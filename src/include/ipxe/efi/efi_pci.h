@@ -12,6 +12,11 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #include <ipxe/efi/Protocol/PciIo.h>
 #include <ipxe/efi/Protocol/DevicePath.h>
 
+/* PciRootBridgeIo.h uses LShiftU64(), which isn't defined anywhere else */
+static inline EFIAPI uint64_t LShiftU64 ( UINT64 value, UINTN shift ) {
+	return ( value << shift );
+}
+
 struct efi_driver;
 struct device;
 
@@ -33,11 +38,11 @@ struct efi_pci_device {
 
 extern struct efi_pci_device * efipci_create ( struct efi_driver *efidrv,
 					       EFI_HANDLE device );
-extern EFI_STATUS efipci_enable ( struct efi_pci_device *efipci );
+extern int efipci_enable ( struct efi_pci_device *efipci );
 extern struct efi_pci_device * efipci_find_efi ( EFI_HANDLE device );
 extern struct efi_pci_device * efipci_find ( struct device *dev );
-extern EFI_STATUS efipci_child_add ( struct efi_pci_device *efipci,
-				     EFI_HANDLE device );
+extern int efipci_child_add ( struct efi_pci_device *efipci,
+			      EFI_HANDLE device );
 extern void efipci_child_del ( struct efi_pci_device *efipci,
 			       EFI_HANDLE device );
 extern void efipci_destroy ( struct efi_driver *efidrv,

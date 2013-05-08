@@ -13,7 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 
 FILE_LICENCE ( GPL2_OR_LATER );
@@ -30,6 +31,12 @@ FILE_LICENCE ( GPL2_OR_LATER );
  *
  * PXE API entry point
  */
+
+/* Disambiguate the various error causes */
+#define EINFO_EPXENBP							\
+	__einfo_uniqify ( EINFO_EPLATFORM, 0x01,			\
+			  "External PXE NBP error" )
+#define EPXENBP( status ) EPLATFORM ( EINFO_EPXENBP, status )
 
 /** Vector for chaining INT 1A */
 extern struct segoff __text16 ( pxe_int_1a_vector );
@@ -256,7 +263,7 @@ rmjmp_buf pxe_restart_nbp;
 int pxe_start_nbp ( void ) {
 	int jmp;
 	int discard_b, discard_c, discard_d, discard_D;
-	uint16_t rc;
+	uint16_t status;
 
 	/* Allow restarting NBP via PXENV_RESTART_TFTP */
 	jmp = rmsetjmp ( pxe_restart_nbp );
@@ -270,7 +277,7 @@ int pxe_start_nbp ( void ) {
 					   "sti\n\t"
 					   "lcall $0, $0x7c00\n\t"
 					   "addw $4, %%sp\n\t" )
-			       : "=a" ( rc ), "=b" ( discard_b ),
+			       : "=a" ( status ), "=b" ( discard_b ),
 				 "=c" ( discard_c ), "=d" ( discard_d ),
 				 "=D" ( discard_D )
 			       : "a" ( 0 ), "b" ( __from_text16 ( &pxenv ) ),
@@ -278,8 +285,10 @@ int pxe_start_nbp ( void ) {
 			         "d" ( virt_to_phys ( &pxenv ) ),
 				 "D" ( __from_text16 ( &ppxe ) )
 			       : "esi", "ebp", "memory" );
+	if ( status )
+		return -EPXENBP ( status );
 
-	return rc;
+	return 0;
 }
 
 REQUIRE_OBJECT ( pxe_preboot );

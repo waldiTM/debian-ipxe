@@ -13,7 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 
 FILE_LICENCE ( GPL2_OR_LATER );
@@ -191,10 +192,11 @@ static int nvo_save ( struct nvo_block *nvo ) {
  * @v setting		Setting
  * @ret applies		Setting applies within this settings block
  */
-static int nvo_applies ( struct settings *settings __unused,
-			 struct setting *setting ) {
+int nvo_applies ( struct settings *settings __unused,
+		  struct setting *setting ) {
 
-	return dhcpopt_applies ( setting->tag );
+	return ( ( setting->scope == NULL ) &&
+		 dhcpopt_applies ( setting->tag ) );
 }
 
 /**
@@ -273,7 +275,8 @@ void nvo_init ( struct nvo_block *nvo, struct nvs_device *nvs,
 	nvo->len = len;
 	nvo->resize = resize;
 	dhcpopt_init ( &nvo->dhcpopts, NULL, 0, nvo_realloc_dhcpopt );
-	settings_init ( &nvo->settings, &nvo_settings_operations, refcnt, 0 );
+	settings_init ( &nvo->settings, &nvo_settings_operations,
+			refcnt, NULL );
 }
 
 /**
@@ -295,7 +298,8 @@ int register_nvo ( struct nvo_block *nvo, struct settings *parent ) {
 		goto err_load;
 
 	/* Register settings */
-	if ( ( rc = register_settings ( &nvo->settings, parent, "nvo" ) ) != 0 )
+	if ( ( rc = register_settings ( &nvo->settings, parent,
+					NVO_SETTINGS_NAME ) ) != 0 )
 		goto err_register;
 
 	DBGC ( nvo, "NVO %p registered\n", nvo );

@@ -13,7 +13,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 
 FILE_LICENCE ( GPL2_OR_LATER );
@@ -337,7 +338,8 @@ static void iscsi_scsi_done ( struct iscsi_session *iscsi, int rc,
 	iscsi->command = NULL;
 
 	/* Send SCSI response, if any */
-	scsi_response ( &iscsi->data, rsp );
+	if ( rsp )
+		scsi_response ( &iscsi->data, rsp );
 
 	/* Close SCSI command, if this is still the same command.  (It
 	 * is possible that the command interface has already been
@@ -570,20 +572,23 @@ static int iscsi_tx_data_out ( struct iscsi_session *iscsi ) {
 	struct io_buffer *iobuf;
 	unsigned long offset;
 	size_t len;
+	size_t pad_len;
 
 	offset = ntohl ( data_out->offset );
 	len = ISCSI_DATA_LEN ( data_out->lengths );
+	pad_len = ISCSI_DATA_PAD_LEN ( data_out->lengths );
 
 	assert ( iscsi->command != NULL );
 	assert ( iscsi->command->data_out );
 	assert ( ( offset + len ) <= iscsi->command->data_out_len );
 
-	iobuf = xfer_alloc_iob ( &iscsi->socket, len );
+	iobuf = xfer_alloc_iob ( &iscsi->socket, ( len + pad_len ) );
 	if ( ! iobuf )
 		return -ENOMEM;
 	
 	copy_from_user ( iob_put ( iobuf, len ),
 			 iscsi->command->data_out, offset, len );
+	memset ( iob_put ( iobuf, pad_len ), 0, pad_len );
 
 	return xfer_deliver_iob ( &iscsi->socket, iobuf );
 }
@@ -801,13 +806,17 @@ static int iscsi_tx_login_request ( struct iscsi_session *iscsi ) {
 	struct iscsi_bhs_login_request *request = &iscsi->tx_bhs.login_request;
 	struct io_buffer *iobuf;
 	size_t len;
+	size_t pad_len;
 
 	len = ISCSI_DATA_LEN ( request->lengths );
-	iobuf = xfer_alloc_iob ( &iscsi->socket, len );
+	pad_len = ISCSI_DATA_PAD_LEN ( request->lengths );
+	iobuf = xfer_alloc_iob ( &iscsi->socket, ( len + pad_len ) );
 	if ( ! iobuf )
 		return -ENOMEM;
 	iob_put ( iobuf, len );
 	iscsi_build_login_request_strings ( iscsi, iobuf->data, len );
+	memset ( iob_put ( iobuf, pad_len ), 0, pad_len );
+
 	return xfer_deliver_iob ( &iscsi->socket, iobuf );
 }
 
@@ -1416,27 +1425,6 @@ static int iscsi_tx_data ( struct iscsi_session *iscsi ) {
 }
 
 /**
- * Transmit data padding of an iSCSI PDU
- *
- * @v iscsi		iSCSI session
- * @ret rc		Return status code
- * 
- * Handle transmission of any data padding in a PDU data segment.
- * iscsi::tx_bhs will be valid when this is called.
- */
-static int iscsi_tx_data_padding ( struct iscsi_session *iscsi ) {
-	static const char pad[] = { '\0', '\0', '\0' };
-	struct iscsi_bhs_common *common = &iscsi->tx_bhs.common;
-	size_t pad_len;
-	
-	pad_len = ISCSI_DATA_PAD_LEN ( common->lengths );
-	if ( ! pad_len )
-		return 0;
-
-	return xfer_deliver_raw ( &iscsi->socket, pad, pad_len );
-}
-
-/**
  * Complete iSCSI PDU transmission
  *
  * @v iscsi		iSCSI session
@@ -1494,11 +1482,6 @@ static void iscsi_tx_step ( struct iscsi_session *iscsi ) {
 		case ISCSI_TX_DATA:
 			tx = iscsi_tx_data;
 			tx_len = ISCSI_DATA_LEN ( common->lengths );
-			next_state = ISCSI_TX_DATA_PADDING;
-			break;
-		case ISCSI_TX_DATA_PADDING:
-			tx = iscsi_tx_data_padding;
-			tx_len = ISCSI_DATA_PAD_LEN ( common->lengths );
 			next_state = ISCSI_TX_IDLE;
 			break;
 		case ISCSI_TX_IDLE:
