@@ -1,1 +1,1 @@
-src/bin/e1000_82540.rom src/bin/eepro100.rom src/bin/ns8390.rom src/bin/pcnet32.rom src/bin/rtl8139.rom src/bin/virtio-net.rom usr/lib/ipxe
+src/bin/82540em.rom src/bin/eepro100.rom src/bin/ns8390.rom src/bin/pcnet32.rom src/bin/rtl8139.rom src/bin/virtio-net.rom usr/lib/ipxe
