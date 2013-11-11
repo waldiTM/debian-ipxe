@@ -11,6 +11,7 @@ Homepage: http://ipxe.org/
 
 Package: ipxe
 Architecture: all
+Multi-Arch: foreign
 Depends: ${misc:Depends}
 Breaks: qemu-system (<= 1.0+dfsg-2), qemu-kvm (<= 1.0+dfsg-7)
 Description: PXE boot firmware
@@ -27,6 +28,7 @@ Description: PXE boot firmware
 
 Package: ipxe-qemu
 Architecture: all
+Multi-Arch: foreign
 Depends: ${misc:Depends}
 Breaks: ipxe (<< 1.0.0+git-20120202.f6840ba-2~)
 Replaces: ipxe (<< 1.0.0+git-20120202.f6840ba-2~)
