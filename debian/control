@@ -3,7 +3,8 @@ Section: admin
 Priority: optional
 Maintainer: Bastian Blank <waldi@debian.org>
 Build-Depends: debhelper (>> 9),
- genisoimage, syslinux
+ genisoimage, syslinux,
+ binutils-dev, zlib1g-dev,
 Standards-Version: 3.9.1
 Homepage: http://ipxe.org/
 #Vcs-Git: git://git.debian.org/collab-maint/ipxe.git
