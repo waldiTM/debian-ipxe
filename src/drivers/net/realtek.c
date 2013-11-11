@@ -549,7 +549,11 @@ static int realtek_create_ring ( struct realtek_nic *rtl,
 static void realtek_destroy_ring ( struct realtek_nic *rtl,
 				   struct realtek_ring *ring ) {
 
-	/* Do nothing in legacy mode */
+	/* Reset producer and consumer counters */
+	ring->prod = 0;
+	ring->cons = 0;
+
+	/* Do nothing more if in legacy mode */
 	if ( rtl->legacy )
 		return;
 
@@ -560,8 +564,6 @@ static void realtek_destroy_ring ( struct realtek_nic *rtl,
 	/* Free descriptor ring */
 	free_dma ( ring->desc, ring->len );
 	ring->desc = NULL;
-	ring->prod = 0;
-	ring->cons = 0;
 }
 
 /**
@@ -905,13 +907,15 @@ static void realtek_poll_rx ( struct net_device *netdev ) {
 		len = ( le16_to_cpu ( rx->length ) & RTL_DESC_SIZE_MASK );
 		iob_put ( iobuf, ( len - 4 /* strip CRC */ ) );
 
-		DBGC2 ( rtl, "REALTEK %p RX %d complete (length %zd)\n",
-			rtl, rx_idx, len );
-
 		/* Hand off to network stack */
 		if ( rx->flags & cpu_to_le16 ( RTL_DESC_RES ) ) {
+			DBGC ( rtl, "REALTEK %p RX %d error (length %zd, "
+			       "flags %04x)\n", rtl, rx_idx, len,
+			       le16_to_cpu ( rx->flags ) );
 			netdev_rx_err ( netdev, iobuf, -EIO );
 		} else {
+			DBGC2 ( rtl, "REALTEK %p RX %d complete (length "
+				"%zd)\n", rtl, rx_idx, len );
 			netdev_rx ( netdev, iobuf );
 		}
 		rtl->rx.cons++;
