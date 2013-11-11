@@ -10,6 +10,7 @@ FILE_LICENCE ( GPL2_OR_LATER );
 #include <config/general.h>
 #include <config/console.h>
 #include <config/sideband.h>
+#include <config/settings.h>
 
 /** @file
  *
@@ -100,6 +101,9 @@ REQUIRE_OBJECT ( debugcon );
 #ifdef NET_PROTO_IPV4
 REQUIRE_OBJECT ( ipv4 );
 #endif
+#ifdef NET_PROTO_IPV6
+REQUIRE_OBJECT ( ipv6 );
+#endif
 
 /*
  * Drag in all requested PXE support
@@ -127,6 +131,9 @@ REQUIRE_OBJECT ( https );
 #endif
 #ifdef DOWNLOAD_PROTO_FTP
 REQUIRE_OBJECT ( ftp );
+#endif
+#ifdef DOWNLOAD_PROTO_NFS
+REQUIRE_OBJECT ( nfs_open );
 #endif
 #ifdef DOWNLOAD_PROTO_SLAM
 REQUIRE_OBJECT ( slam );
@@ -241,6 +248,9 @@ REQUIRE_OBJECT ( lotest_cmd );
 #ifdef VLAN_CMD
 REQUIRE_OBJECT ( vlan_cmd );
 #endif
+#ifdef POWEROFF_CMD
+REQUIRE_OBJECT ( poweroff_cmd );
+#endif
 #ifdef REBOOT_CMD
 REQUIRE_OBJECT ( reboot_cmd );
 #endif
@@ -252,6 +262,18 @@ REQUIRE_OBJECT ( sync_cmd );
 #endif
 #ifdef NSLOOKUP_CMD
 REQUIRE_OBJECT ( nslookup_cmd );
+#endif
+#ifdef PCI_CMD
+REQUIRE_OBJECT ( pci_cmd );
+#endif
+#ifdef PARAM_CMD
+REQUIRE_OBJECT ( param_cmd );
+#endif
+#ifdef NEIGHBOUR_CMD
+REQUIRE_OBJECT ( neighbour_cmd );
+#endif
+#ifdef PING_CMD
+REQUIRE_OBJECT ( ping_cmd );
 #endif
 
 /*
@@ -293,9 +315,22 @@ REQUIRE_OBJECT ( tap );
 REQUIRE_OBJECT ( efi_bofm );
 #endif /* BOFM_EFI */
 #endif /* CONFIG_BOFM */
+
+/*
+ * Drag in relevant settings sources
+ */
+#ifdef PCI_SETTINGS
+REQUIRE_OBJECT ( pci_settings );
+#endif
 #ifdef VMWARE_SETTINGS
 REQUIRE_OBJECT ( guestinfo );
-#endif /* VMWARE_SETTINGS */
+#endif
+#ifdef CPUID_SETTINGS
+REQUIRE_OBJECT ( cpuid_settings );
+#endif
+#ifdef MEMMAP_SETTINGS
+REQUIRE_OBJECT ( memmap_settings );
+#endif
 
 /*
  * Drag in selected keyboard map
