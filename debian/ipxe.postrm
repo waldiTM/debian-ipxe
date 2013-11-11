@@ -4,7 +4,7 @@ set -e
 
 case "$1" in
     remove)
-        command -v update-grub > /dev/null && update-grub
+        command -v update-grub > /dev/null && update-grub || :
     ;;      
 esac
     

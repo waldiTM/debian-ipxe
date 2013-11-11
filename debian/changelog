@@ -3,6 +3,7 @@ ipxe (1.0.0+git-20131111.c3d1e78-1) UNRELEASED; urgency=low
   * New snapshot.
   * Replace ROM for e1000_82540 with 82540em, add compatibility symlink.
   * Add undionly.kkpxe. (closes: #671340)
+  * Ignore result of update-grub invocation. (closes: #660459)
 
  -- Bastian Blank <waldi@debian.org>  Wed, 08 May 2013 13:50:00 +0200
 
