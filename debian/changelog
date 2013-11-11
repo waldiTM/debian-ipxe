@@ -5,6 +5,7 @@ ipxe (1.0.0+git-20131111.c3d1e78-1) UNRELEASED; urgency=low
   * Add undionly.kkpxe. (closes: #671340)
   * Ignore result of update-grub invocation. (closes: #660459)
   * Mark packages as multi-arch foreign. (closes: #728476)
+  * Use debhelper 9.
 
  -- Bastian Blank <waldi@debian.org>  Wed, 08 May 2013 13:50:00 +0200
 
