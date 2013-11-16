@@ -10,6 +10,7 @@ ipxe (1.0.0+git-20131111.c3d1e78-1) UNRELEASED; urgency=low
   * Add x86_64 ipxe.efi.
     - Build-depend on binutils-dev, zlib1g-dev.
     - Properly clean build dir.
+  * Also use names used by qemu for rom images.
 
  -- Bastian Blank <waldi@debian.org>  Wed, 08 May 2013 13:50:00 +0200
 
