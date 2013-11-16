@@ -12,11 +12,14 @@ VERSION := $(shell dpkg-parsechangelog | sed -ne 's,^Version: *\(.*\)$$,\1,p')
 override_dh_auto_configure:
 	cp debian/config/* src/config/local
 
-override_dh_auto_build: TARGETS = $(shell grep -hoE 'bin(-[^/]*)?/\S+' debian/*.install)
-override_dh_auto_build:
-	$(MAKE) -C src V=1 NO_WERROR=1 VERSION="$(VERSION)" $(TARGETS)
+src/bin/% src/bin-x86_64-efi/%:
+	$(MAKE) -C src V=1 NO_WERROR=1 VERSION="$(VERSION)" $(subst src/,,$@)
+
+override_dh_auto_build: $(shell grep -hoE 'src/bin(-[^/]*)?/\S+' debian/*.install)
 
 override_dh_auto_clean:
 	$(MAKE) -C src veryclean
 	rm -fr src/bin-x86_64-efi
 	rm -f src/config/local/*
+
+.NOTPARALLEL:
