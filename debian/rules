@@ -15,11 +15,16 @@ override_dh_auto_configure:
 src/bin/% src/bin-x86_64-efi/%:
 	$(MAKE) -C src V=1 NO_WERROR=1 VERSION="$(VERSION)" $(subst src/,,$@)
 
+src/bin-efi/%.efirom: src/bin/%.rom src/bin-x86_64-efi/%.efirom
+	@[ -d $(dir $@) ] || mkdir $(dir $@)
+	src/util/catrom.pl $^ > $@
+
 override_dh_auto_build: $(shell grep -hoE 'src/bin(-[^/]*)?/\S+' debian/*.install)
 
 override_dh_auto_clean:
 	$(MAKE) -C src veryclean
-	rm -fr src/bin-x86_64-efi
+	rm -fr src/bin-efi src/bin-x86_64-efi
 	rm -f src/config/local/*
 
 .NOTPARALLEL:
+.SECONDARY:
