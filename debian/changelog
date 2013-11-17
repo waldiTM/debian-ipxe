@@ -1,17 +1,17 @@
 ipxe (1.0.0+git-20131111.c3d1e78-1) UNRELEASED; urgency=low
 
   * New snapshot.
-  * Replace ROM for e1000_82540 with 82540em, add compatibility symlink.
   * Add undionly.kkpxe. (closes: #671340)
   * Ignore result of update-grub invocation. (closes: #660459)
   * Mark packages as multi-arch foreign. (closes: #728476)
   * Use debhelper 9.
   * Remove old breaks relations.
-  * Add x86_64 ipxe.efi.
+  * Add 64-bit ipxe.efi:
     - Build-depend on binutils-dev, zlib1g-dev.
     - Properly clean build dir.
-  * Rename rom images for qemu to match names used by qemu.
-    - Use dh-exec to allow rename in dh_install.
+  * Install images in ipxe-qemu to match names used by qemu:
+    - Add compatility symlink for e1000_82540.
+    - Use dh-exec to allow renames in dh_install.
 
  -- Bastian Blank <waldi@debian.org>  Wed, 08 May 2013 13:50:00 +0200
 
